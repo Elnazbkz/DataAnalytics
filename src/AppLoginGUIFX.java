@@ -70,4 +70,24 @@ public class AppLoginGUIFX {
 }
 
 
+//class CalculateButtonEventHandler implements EventHandler<ActionEvent> {
+//	
+//	private SalaryLabelGUIFX guiInterface;
+//
+//	public CalculateButtonEventHandler(SalaryLabelGUIFX guiInterface) {
+//		this.guiInterface = guiInterface;
+//	}
+//	
+//	@Override
+//	public void handle(ActionEvent arg0) {
+//		double width = Double.parseDouble(guiInterface.getWidthTextField().getText());
+//		double height = Double.parseDouble(guiInterface.getHeightTextField().getText());
+//		
+//		double area = width * height;
+//		
+//		guiInterface.getOutputLabel().setText(Double.toString(area));
+//	}
+//}
+
+
 
