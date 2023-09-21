@@ -51,7 +51,7 @@ public class AppLoginGUIFX {
 	    // Add Heading
 	    formGridPane.add(heading, 0, 0, 2, 1); // Spanning 2 columns
 
-	    // Username
+	    // UserName
 	    formGridPane.add(usernameLabel, 0, 1);
 	    formGridPane.add(usernameTextField, 1, 1);
 
