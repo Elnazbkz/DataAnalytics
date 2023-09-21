@@ -7,13 +7,13 @@ import javafx.stage.Stage;
 public class Main extends Application {
 	@Override // Override the start method in the Application class
 	public void start(Stage primaryStage) throws IOException {
-		
-		SalaryLabelGUIFX scene1 = new SalaryLabelGUIFX();
-		
+		AppLoginGUIFX LoginScene = new AppLoginGUIFX();
 		//CalculateAreaScene scene2 = new CalculateAreaScene();
 			
-		primaryStage.setTitle(scene1.getTitle()); // Set the stage title
-		primaryStage.setScene(scene1.getScene()); // Place the scene in the stage
+		primaryStage.setTitle(LoginScene.getTitle()); // Set the stage title
+		primaryStage.setScene(LoginScene.getScene()); // Place the scene in the stage
+		primaryStage.setHeight(400);
+		primaryStage.setWidth(600);
 		primaryStage.show(); // Display the stage
 	}
 
