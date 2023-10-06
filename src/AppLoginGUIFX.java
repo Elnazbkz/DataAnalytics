@@ -8,12 +8,20 @@ import javafx.scene.control.Label;
 import javafx.scene.control.TextField;
 import javafx.scene.layout.GridPane;
 import javafx.scene.text.Text;
+import javafx.stage.Stage;
 
 public class AppLoginGUIFX {
 	private TextField UsernameTextField;
 	private TextField PasswordTextField;
+	private Stage primaryStage;
+    private AppFirstPage firstPage;
+    
 	
-	
+    public AppLoginGUIFX(Stage primaryStage, AppFirstPage firstPage) {
+        this.primaryStage = primaryStage;
+        this.firstPage = firstPage;
+    }
+    
 	public TextField GetUserName() {
 		return UsernameTextField;
 	}
@@ -40,8 +48,15 @@ public class AppLoginGUIFX {
 	    TextField passwordTextField = new TextField();
 
 	    // Generate Buttons
-	    Button loginButton = new Button("Sign In");
-	    Button registerButton = new Button("Sign Up");
+	    Button loginButton = new Button("Login Now");
+	    Button backButton = new Button("Back to Home");
+        backButton.setOnAction(new EventHandler<ActionEvent>() {
+            @Override
+            public void handle(ActionEvent event) {
+                primaryStage.setTitle(firstPage.getTitle());
+                primaryStage.setScene(firstPage.getScene());
+            }
+        });
 
 	    GridPane formGridPane = new GridPane();
 	    formGridPane.setAlignment(Pos.CENTER);
@@ -60,8 +75,9 @@ public class AppLoginGUIFX {
 	    formGridPane.add(passwordTextField, 1, 2);
 
 	    // Buttons
-	    formGridPane.add(loginButton, 0, 3);
-	    formGridPane.add(registerButton, 1, 3);
+	    formGridPane.add(backButton, 0, 3);
+	    formGridPane.add(loginButton, 1, 3);
+	    
 
 	    Scene scene = new Scene(formGridPane, 400, 300); // Added width and height
 	    return scene;
