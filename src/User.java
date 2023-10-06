@@ -7,6 +7,7 @@ import java.util.*;
 
 import appException.Exceptions;
 import appException.Exceptions.EmailExistsException;
+import appException.Exceptions.UserLoginInvalid;
 
 
 public class User {
@@ -66,11 +67,11 @@ public class User {
         this.Password = password;
     }
     
-    public boolean userEmailExists(String emailAddress) throws EmailExistsException {
+    public boolean userEmailExists(String EmailAddress) throws EmailExistsException {
 
-        try ( PreparedStatement stmt = con.prepareStatement("SELECT * FROM users WHERE ID = ?")) {
+        try ( PreparedStatement stmt = con.prepareStatement("SELECT * FROM users WHERE EmailAddress = ?")) {
 
-            stmt.setString(1, emailAddress);
+            stmt.setString(1, EmailAddress);
             ResultSet resultSet = stmt.executeQuery();
 
             // Check if the result set has any rows
@@ -80,6 +81,28 @@ public class User {
             System.out.println("Error while searching for the user: " + e.getMessage());
             return false;
         }
+    }
+    
+    public boolean userLoginValidation(String EmailAddress, String Password) throws UserLoginInvalid {
+
+        try ( PreparedStatement stmt = con.prepareStatement("SELECT * FROM users WHERE EmailAddress = ?")) {
+
+        	stmt.setString(1, EmailAddress);
+            ResultSet resultSet = stmt.executeQuery();
+
+            // Check if the result set has any rows
+            while(resultSet.next()) {
+            	if(resultSet.getString("Password") != Password) {
+            		Exceptions exceptions = new Exceptions();  // Create an instance of Exceptions
+            		throw exceptions.new UserLoginInvalid("Email address already exists.");
+            	}
+            }
+
+        } catch (SQLException e) {
+            System.out.println("Error while searching for the user: " + e.getMessage());
+            return false;
+        }
+		return true;
     }
 
     public Map<String, String> GetUserInfo(int UserID) {
