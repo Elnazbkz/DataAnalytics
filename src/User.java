@@ -1,10 +1,13 @@
-package sqlitedb;
-
+import sqlitedb.*;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.*;
+
+import appException.Exceptions;
+import appException.Exceptions.EmailExistsException;
+
 
 public class User {
     private int UserID;
@@ -63,12 +66,11 @@ public class User {
         this.Password = password;
     }
     
-    public boolean userExists(int userID) {
-        final String TABLE_NAME = "users";
+    public boolean userEmailExists(String emailAddress) throws EmailExistsException {
 
-        try ( PreparedStatement stmt = con.prepareStatement("SELECT * FROM " + TABLE_NAME + " WHERE ID = ?")) {
+        try ( PreparedStatement stmt = con.prepareStatement("SELECT * FROM users WHERE ID = ?")) {
 
-            stmt.setInt(1, userID);
+            stmt.setString(1, emailAddress);
             ResultSet resultSet = stmt.executeQuery();
 
             // Check if the result set has any rows
@@ -102,9 +104,38 @@ public class User {
 		return userMap;
     }
 
-    public boolean createUser(User user) {
-        // Implement your logic to create a user in the database
-        // You can return true if the user creation is successful, or false otherwise
-        return true;
+    public boolean createUser(User user) throws EmailExistsException {
+        boolean userExists = userEmailExists(user.getEmailAddress());
+
+        if (userExists) {
+            Exceptions exceptions = new Exceptions();  // Create an instance of Exceptions
+            throw exceptions.new EmailExistsException("Email address already exists.");
+        }
+
+        String EmailAddress = user.getEmailAddress();
+        String FirstName = user.getFirstName();
+        String LastName = user.getLastName();
+        String Password = user.getPassword();
+        String AccountType = "Basic";
+
+        try {
+            String query = "INSERT INTO users (EmailAddress, FirstName, LastName, Password, AccountType) VALUES (?, ?, ?, ?, ?)";
+            PreparedStatement pstmt = con.prepareStatement(query);
+            pstmt.setString(1, EmailAddress);
+            pstmt.setString(2, FirstName);
+            pstmt.setString(3, LastName);
+            pstmt.setString(4, Password);
+            pstmt.setString(5, AccountType);
+
+            int result = pstmt.executeUpdate();
+
+            if (result == 1) {
+                return true;
+            }
+        } catch (SQLException e) {
+            System.out.println("Error while inserting user: " + e.getMessage());
+        }
+
+        return false;
     }
 }
