@@ -3,7 +3,7 @@ import java.io.IOException;
 
 import javafx.application.Application;
 import javafx.stage.Stage;
-import sqlitedb.DBConnection;
+import sqlitedb.SQLiteJDBC;
 public class Main extends Application {
 	@Override // Override the start method in the Application class
 	public void start(Stage primaryStage) throws IOException {
@@ -15,7 +15,7 @@ public class Main extends Application {
 		primaryStage.show(); // Display the stage
 	}
 	public static void main(String[] args) {
-		DBConnection dbconn = new DBConnection();
+		SQLiteJDBC dbconn = new SQLiteJDBC();
 		launch(args);
 	}
 }

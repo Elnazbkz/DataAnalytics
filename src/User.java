@@ -1,4 +1,3 @@
-import sqlitedb.*;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
@@ -8,7 +7,7 @@ import java.util.*;
 import appException.Exceptions;
 import appException.Exceptions.EmailExistsException;
 import appException.Exceptions.UserLoginInvalid;
-
+import sqlitedb.SQLiteJDBC;
 
 public class User {
     private int UserID;
@@ -16,18 +15,25 @@ public class User {
     private String FirstName;
     private String LastName;
     private String Password;
-    private Connection con;
+    private String AccountType;
+    SQLiteJDBC dbConnection = new SQLiteJDBC();
+    Connection con = dbConnection.getConnection();
 
-    public User(int UserID, String EmailAddress, String FirstName, String LastName, String Password) throws SQLException {
+    public User( String FirstName, String LastName, String EmailAddress, String Password, String AccountType) throws SQLException {
         this.UserID = UserID;
         this.EmailAddress = EmailAddress;
         this.FirstName = FirstName;
         this.LastName = LastName;
         this.Password = Password;
-        this.con = DBConnection.getConnection();
+        this.AccountType = AccountType;
+        
     }
 
-    public int getUserID() {
+    public User() {
+		// TODO Auto-generated constructor stub
+	}
+
+	public int getUserID() {
         return UserID;
     }
 
@@ -142,11 +148,11 @@ public class User {
         String AccountType = "Basic";
 
         try {
-            String query = "INSERT INTO users (EmailAddress, FirstName, LastName, Password, AccountType) VALUES (?, ?, ?, ?, ?)";
+            String query = "INSERT INTO users ( FirstName, LastName, EmailAddress, Password, AccountType) VALUES (?, ?, ?, ?, ?)";
             PreparedStatement pstmt = con.prepareStatement(query);
-            pstmt.setString(1, EmailAddress);
-            pstmt.setString(2, FirstName);
-            pstmt.setString(3, LastName);
+            pstmt.setString(1, FirstName);
+            pstmt.setString(2, LastName);
+            pstmt.setString(3, EmailAddress);
             pstmt.setString(4, Password);
             pstmt.setString(5, AccountType);
 

@@ -1,3 +1,7 @@
+import java.sql.Connection;
+import java.sql.SQLException;
+
+import appException.Exceptions.EmailExistsException;
 import javafx.event.ActionEvent;
 import javafx.event.EventHandler;
 import javafx.geometry.Pos;
@@ -6,6 +10,7 @@ import javafx.scene.control.*;
 import javafx.scene.layout.GridPane;
 import javafx.scene.text.Text;
 import javafx.stage.Stage;
+import sqlitedb.SQLiteJDBC;
 
 public class AppRegisterGUIFX {
     private TextField firstName;
@@ -61,6 +66,42 @@ public class AppRegisterGUIFX {
                 primaryStage.setTitle(firstPage.getTitle());
                 primaryStage.setScene(firstPage.getScene());
             }
+        });
+        
+        registerButton.setOnAction(new EventHandler<ActionEvent>() {
+        	public void handle(ActionEvent event) {
+        		User user = null;
+				user = new User();
+        		String EmailAddress = emailTextField.getText();
+        		try {
+					if(user.userEmailExists(EmailAddress)) {
+						System.out.println("User exists");
+						
+					}
+				} catch (EmailExistsException e) {
+					// TODO Auto-generated catch block
+					e.printStackTrace();
+				}
+        		String firstNameValue = firstName.getText();
+        		String lastNameValue = lastName.getText();
+        		String EmailValue = emailTextField.getText();
+        		String passwordValue = passwordField.getText();
+        		String accountTypeValue = "Basic";
+        		
+        		try {
+					User NewUser = new User(firstNameValue, lastNameValue, EmailValue, passwordValue, accountTypeValue);
+					boolean result = user.createUser(NewUser);
+					if(result == true) {
+						System.out.println("User created");
+					}
+				} catch (SQLException e) {
+					// TODO Auto-generated catch block
+					e.printStackTrace();
+				} catch (EmailExistsException e) {
+					// TODO Auto-generated catch block
+					e.printStackTrace();
+				}
+        	}
         });
 
         GridPane formGridPane = new GridPane();

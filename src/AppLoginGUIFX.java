@@ -1,3 +1,6 @@
+import java.sql.SQLException;
+
+import appException.Exceptions.EmailExistsException;
 import javafx.event.ActionEvent;
 import javafx.event.EventHandler;
 import javafx.geometry.Insets;
@@ -11,7 +14,7 @@ import javafx.scene.text.Text;
 import javafx.stage.Stage;
 
 public class AppLoginGUIFX {
-	private TextField UsernameTextField;
+	private TextField EmailTextField;
 	private TextField PasswordTextField;
 	private Stage primaryStage;
     private AppFirstPage firstPage;
@@ -22,8 +25,8 @@ public class AppLoginGUIFX {
         this.firstPage = firstPage;
     }
     
-	public TextField GetUserName() {
-		return UsernameTextField;
+	public TextField GetEmailAddress() {
+		return EmailTextField;
 	}
 	
 	public TextField GetPassword() {
@@ -40,11 +43,11 @@ public class AppLoginGUIFX {
 	    Text heading = new Text("Login");
 
 	    // Generate Labels
-	    Label usernameLabel = new Label("Username:");
+	    Label EmailLabel = new Label("Username:");
 	    Label passwordLabel = new Label("Password:");
 
 	    // Generate TextFields
-	    TextField usernameTextField = new TextField();
+	    TextField EmailTextField = new TextField();
 	    TextField passwordTextField = new TextField();
 
 	    // Generate Buttons
@@ -57,6 +60,24 @@ public class AppLoginGUIFX {
                 primaryStage.setScene(firstPage.getScene());
             }
         });
+        
+        loginButton.setOnAction(new EventHandler<ActionEvent>() {
+        	public void handle(ActionEvent event) {
+        		User user = null;
+				user = new User();
+        		String EmailAddress = EmailTextField.getText();
+        		try {
+					if(user.userEmailExists(EmailAddress)) {
+						System.out.println("User exists");
+						
+					}
+				} catch (EmailExistsException e) {
+					// TODO Auto-generated catch block
+					e.printStackTrace();
+				}
+        		System.out.println("User not exists");
+        	}
+        });
 
 	    GridPane formGridPane = new GridPane();
 	    formGridPane.setAlignment(Pos.CENTER);
@@ -67,8 +88,8 @@ public class AppLoginGUIFX {
 	    formGridPane.add(heading, 0, 0, 2, 1); // Spanning 2 columns
 
 	    // UserName
-	    formGridPane.add(usernameLabel, 0, 1);
-	    formGridPane.add(usernameTextField, 1, 1);
+	    formGridPane.add(EmailLabel, 0, 1);
+	    formGridPane.add(EmailTextField, 1, 1);
 
 	    // Password
 	    formGridPane.add(passwordLabel, 0, 2);
