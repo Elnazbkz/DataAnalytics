@@ -30,9 +30,9 @@ public class AppFirstPage {
         loginButton.setOnAction(new EventHandler<ActionEvent>() {
             @Override
             public void handle(ActionEvent event) {
-            	AppLoginGUIFX LoginScene = new AppLoginGUIFX(primaryStage, AppFirstPage.this);
-            	primaryStage.setTitle(LoginScene.getTitle()); // Set the stage title
-    			primaryStage.setScene(LoginScene.getScene()); // Place the scene in the stage
+            	AppLoginGUIFX loginScene = new AppLoginGUIFX(primaryStage, AppFirstPage.this);
+                primaryStage.setTitle(loginScene.getTitle());
+                primaryStage.setScene(loginScene.getScene());
                 
             }
         });

@@ -17,14 +17,16 @@ public class AppLoginGUIFX {
 	private TextField EmailTextField;
 	private TextField PasswordTextField;
 	private Stage primaryStage;
-    private AppFirstPage firstPage;
-    
-	
+	private AppFirstPage firstPage;
+	private AppUserProfile profilePage;
+  
+
     public AppLoginGUIFX(Stage primaryStage, AppFirstPage firstPage) {
         this.primaryStage = primaryStage;
         this.firstPage = firstPage;
     }
-    
+
+	    
 	public TextField GetEmailAddress() {
 		return EmailTextField;
 	}
@@ -58,6 +60,7 @@ public class AppLoginGUIFX {
             public void handle(ActionEvent event) {
                 primaryStage.setTitle(firstPage.getTitle());
                 primaryStage.setScene(firstPage.getScene());
+                
             }
         });
         
@@ -66,16 +69,19 @@ public class AppLoginGUIFX {
         		User user = null;
 				user = new User();
         		String EmailAddress = EmailTextField.getText();
-        		try {
-					if(user.userEmailExists(EmailAddress)) {
-						System.out.println("User exists");
-						
-					}
+        		int UserID = 0;
+				try {
+					UserID = user.userEmailExists(EmailAddress);
 				} catch (EmailExistsException e) {
 					// TODO Auto-generated catch block
 					e.printStackTrace();
 				}
-        		System.out.println("User not exists");
+        		if(UserID != 0) {
+					AppUserProfile profileScene = new AppUserProfile(primaryStage, UserID);
+				    primaryStage.setTitle(profileScene.getTitle());
+				    primaryStage.setScene(profileScene.getScene());
+					
+				}
         	}
         });
 

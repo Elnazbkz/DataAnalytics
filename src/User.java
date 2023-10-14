@@ -73,7 +73,7 @@ public class User {
         this.Password = password;
     }
     
-    public boolean userEmailExists(String EmailAddress) throws EmailExistsException {
+    public int userEmailExists(String EmailAddress) throws EmailExistsException {
 
         try ( PreparedStatement stmt = con.prepareStatement("SELECT * FROM users WHERE EmailAddress = ?")) {
 
@@ -81,11 +81,11 @@ public class User {
             ResultSet resultSet = stmt.executeQuery();
 
             // Check if the result set has any rows
-            return resultSet.next();
+            return resultSet.getInt("ID");
 
         } catch (SQLException e) {
             System.out.println("Error while searching for the user: " + e.getMessage());
-            return false;
+            return 0;
         }
     }
     
@@ -114,14 +114,14 @@ public class User {
     public Map<String, String> GetUserInfo(int UserID) {
     	Map<String, String> userMap = null;
         final String TABLE_NAME = "users";
-        try ( PreparedStatement stmt = con.prepareStatement("SELECT * FROM " + TABLE_NAME + " WHERE ID = ?")) {
-        	stmt.setInt(1, UserID);
+        try ( PreparedStatement stmt = con.prepareStatement("SELECT * FROM " + TABLE_NAME + " WHERE ID = " + UserID)) {
             ResultSet resultSet = stmt.executeQuery();
             userMap = new HashMap<>();
             while (resultSet.next()) {
 				userMap.put("ID", String.valueOf(resultSet.getInt("ID")));
 				userMap.put("FirstName", String.valueOf(resultSet.getString("FirstName")));
 				userMap.put("LastName", String.valueOf(resultSet.getString("LastName")));
+				userMap.put("EmailAddress", String.valueOf(resultSet.getString("EmailAddress")));
 				userMap.put("Password", String.valueOf(resultSet.getString("Password")));
 				userMap.put("AccountType", String.valueOf(resultSet.getString("AccountType")));
             }
@@ -131,12 +131,13 @@ public class User {
         }
         
 		return userMap;
+		
     }
 
     public boolean createUser(User user) throws EmailExistsException {
-        boolean userExists = userEmailExists(user.getEmailAddress());
+        int userExists = userEmailExists(user.getEmailAddress());
 
-        if (userExists) {
+        if (userExists != 0) {
             Exceptions exceptions = new Exceptions();  // Create an instance of Exceptions
             throw exceptions.new EmailExistsException("Email address already exists.");
         }

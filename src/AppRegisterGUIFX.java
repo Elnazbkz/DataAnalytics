@@ -74,7 +74,7 @@ public class AppRegisterGUIFX {
 				user = new User();
         		String EmailAddress = emailTextField.getText();
         		try {
-					if(user.userEmailExists(EmailAddress)) {
+					if(user.userEmailExists(EmailAddress) != 0) {
 						System.out.println("User exists");
 						
 					}
