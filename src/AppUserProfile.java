@@ -189,36 +189,53 @@ public class AppUserProfile {
         
         tab.setContent(AddPostContent);
         
-        AddPostButton.setOnAction(new EventHandler<ActionEvent>() {
-            @Override
-            public void handle(ActionEvent event) {
-                try {
-                    int postID = Integer.parseInt(PostIDField.getText());
+        AddPostButton.setOnAction(event -> {
+            try {
+                int postID = Integer.parseInt(PostIDField.getText());
 
-                    if (postID != 0) {
-                        postInfo = post.GetPostDetails(postID);
-                        if (postInfo == null) {
-                            String postContent = PostContentField.getText();
-                            String author = AuthorField.getText();
-                            int likes = Integer.parseInt(LikesField.getText());
-                            int shares = Integer.parseInt(SharesField.getText());
-                            String dateTime = DateField.getText();
-
-                            Post newPost = new Post(postID, postContent, author, likes, shares, dateTime);
-
-                            boolean result = post.CreateNewPost(newPost);
-                            if (result) {
-                                Result.setText("Post with ID " + postID + " successfully added.");
-                            } else {
-                                Result.setText("Failed to add post with ID " + postID);
-                            }
-                        } else {
-                            Result.setText("Post with ID " + postID + " already exists");
-                        }
-                    }
-                } catch (PostIDInvalid e) {
-                    Result.setText("Invalid input for Post ID, Likes, or Shares");
+                if (postID == 0) {
+                    Result.setText("Post ID cannot be zero.");
+                    return;
                 }
+
+                postInfo = post.GetPostDetails(postID);
+                if (postInfo != null) {
+                    Result.setText("Post with ID " + postID + " already exists.");
+                    return;
+                }
+
+                String postContent = PostContentField.getText();
+                String author = AuthorField.getText();
+                
+                int likes = 0;
+                int shares = 0;
+
+                try {
+                    likes = Integer.parseInt(LikesField.getText());
+                    shares = Integer.parseInt(SharesField.getText());
+                } catch (NumberFormatException e) {
+                    Result.setText("Likes and Shares must be non-negative integers.");
+                    return;
+                }
+
+                if (likes < 0 || shares < 0) {
+                    Result.setText("Likes and Shares must be non-negative integers.");
+                    return;
+                }
+
+                String dateTime = DateField.getText();
+
+                Post newPost = new Post(postID, postContent, author, likes, shares, dateTime);
+                boolean result = post.CreateNewPost(newPost);
+
+                if (result) {
+                    Result.setText("Post with ID " + postID + " successfully added.");
+                } else {
+                    Result.setText("Failed to add post with ID " + postID);
+                }
+
+            } catch (PostIDInvalid e) {
+                Result.setText("Invalid input for Post ID, Likes, or Shares.");
             }
         });
 
