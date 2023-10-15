@@ -16,6 +16,7 @@ import java.util.Map;
 //import appException.Exceptions.FaildUpdateException;
 
 import appException.Exceptions.FailedUpdateException;
+import appException.Exceptions.PostIDInvalid;
 
 public class AppUserProfile {
     private Label fullNameLabel;
@@ -187,6 +188,41 @@ public class AppUserProfile {
         AddPostContent.add(Result, 0, 8);
         
         tab.setContent(AddPostContent);
+        
+        AddPostButton.setOnAction(new EventHandler<ActionEvent>() {
+            @Override
+            public void handle(ActionEvent event) {
+                try {
+                    int postID = Integer.parseInt(PostIDField.getText());
+
+                    if (postID != 0) {
+                        postInfo = post.GetPostDetails(postID);
+                        if (postInfo == null) {
+                            String postContent = PostContentField.getText();
+                            String author = AuthorField.getText();
+                            int likes = Integer.parseInt(LikesField.getText());
+                            int shares = Integer.parseInt(SharesField.getText());
+                            String dateTime = DateField.getText();
+
+                            Post newPost = new Post(postID, postContent, author, likes, shares, dateTime);
+
+                            boolean result = post.CreateNewPost(newPost);
+                            if (result) {
+                                Result.setText("Post with ID " + postID + " successfully added.");
+                            } else {
+                                Result.setText("Failed to add post with ID " + postID);
+                            }
+                        } else {
+                            Result.setText("Post with ID " + postID + " already exists");
+                        }
+                    }
+                } catch (PostIDInvalid e) {
+                    Result.setText("Invalid input for Post ID, Likes, or Shares");
+                }
+            }
+        });
+
+        
         return tab;
     }
     

@@ -16,11 +16,11 @@ public class Exceptions {
 		public FailedUpdateException(String message) {
 			super(message);
 		}
-		
-		public class PostException extends Exception {
-			public PostException(String message) {
-				super(message);
-			}
+	}
+	
+	public class PostIDInvalid extends Exception {
+		public PostIDInvalid(String message) {
+			super(message);
 		}
 	}
 }
