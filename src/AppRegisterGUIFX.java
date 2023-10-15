@@ -87,9 +87,10 @@ public class AppRegisterGUIFX {
         		String EmailValue = emailTextField.getText();
         		String passwordValue = passwordField.getText();
         		String accountTypeValue = "Basic";
+        		int UserID = 0;
         		
         		try {
-					User NewUser = new User(firstNameValue, lastNameValue, EmailValue, passwordValue, accountTypeValue);
+					User NewUser = new User(UserID, firstNameValue, lastNameValue, EmailValue, passwordValue, accountTypeValue);
 					boolean result = user.createUser(NewUser);
 					if(result == true) {
 						System.out.println("User created");

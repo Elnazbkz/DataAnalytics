@@ -8,6 +8,7 @@ import javafx.geometry.Pos;
 import javafx.scene.Scene;
 import javafx.scene.control.Button;
 import javafx.scene.control.Label;
+import javafx.scene.control.PasswordField;
 import javafx.scene.control.TextField;
 import javafx.scene.layout.GridPane;
 import javafx.scene.text.Text;
@@ -50,7 +51,7 @@ public class AppLoginGUIFX {
 
 	    // Generate TextFields
 	    TextField EmailTextField = new TextField();
-	    TextField passwordTextField = new TextField();
+	    TextField passwordTextField = new PasswordField();
 
 	    // Generate Buttons
 	    Button loginButton = new Button("Login Now");

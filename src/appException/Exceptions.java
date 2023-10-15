@@ -11,5 +11,11 @@ public class Exceptions {
 	        super(message);
 	    }
 	}
+	
+	public class FailedUpdateException extends Exception {
+		public FailedUpdateException(String message) {
+			super(message);
+		}
+	}
 }
 

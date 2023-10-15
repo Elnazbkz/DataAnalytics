@@ -1,11 +1,20 @@
+import javafx.collections.FXCollections;
+import javafx.collections.ObservableList;
+import javafx.event.ActionEvent;
+import javafx.event.EventHandler;
 import javafx.geometry.Pos;
 import javafx.scene.Scene;
 import javafx.scene.control.*;
 import javafx.scene.layout.GridPane;
 import javafx.scene.layout.VBox;
+import javafx.scene.text.Text;
 import javafx.stage.Stage;
 
+import java.sql.SQLException;
 import java.util.Map;
+//import appException.Exceptions.FaildUpdateException;
+
+import appException.Exceptions.FailedUpdateException;
 
 public class AppUserProfile {
     private Label fullNameLabel;
@@ -56,20 +65,20 @@ public class AppUserProfile {
     //// Tab content for Edit Profile
     private Tab createEditProfileTab() {
         Tab tab = new Tab("Edit Profile");
+        
         Label emailLabel = new Label("Email:");
         Label firstNameLabel = new Label("First Name:");
         Label lastNameLabel = new Label("Last Name:");
-        Label passwordLabel = new Label("Current Password:");
-        Label NewpasswordLabel = new Label("New Password:");
 
+        
         TextField firstName = new TextField(userInfo.get("FirstName"));
         TextField lastName = new TextField(userInfo.get("LastName"));
         TextField emailTextField = new TextField(userInfo.get("EmailAddress"));
-        TextField passwordField = new PasswordField();
-        TextField NewpasswordField = new PasswordField();
-        GridPane editProfileContent = createForm("User Profile");
         Button UpdateProfileButton = new Button("Update Profile");
-        // Add the labels to the form
+        Text Result = new Text();
+        GridPane editProfileContent = createForm("User Profile");
+        
+        // Add the labels and text fields to the form
         editProfileContent.add(fullNameLabel, 0, 1);
         editProfileContent.add(accountTypeLabel, 0, 2);
         
@@ -82,16 +91,48 @@ public class AppUserProfile {
         editProfileContent.add(emailLabel, 0, 5);
         editProfileContent.add(emailTextField, 1, 5);
 
-        editProfileContent.add(passwordLabel, 0, 6);
-        editProfileContent.add(passwordField, 1, 6);
-        
-        editProfileContent.add(NewpasswordLabel, 0, 7);
-        editProfileContent.add(NewpasswordField, 1, 7);
-
+        editProfileContent.add(Result, 0, 6);
         editProfileContent.add(UpdateProfileButton, 0, 8);
         
-
         tab.setContent(editProfileContent);
+        
+        /// button click handler
+        UpdateProfileButton.setOnAction(new EventHandler<ActionEvent>() {
+            @Override
+            public void handle(ActionEvent event) {
+                int UserID = Integer.parseInt(userInfo.get("ID"));
+
+				if (UserID != 0) {
+				    String FirstName = firstName.getText();
+				    String LastName = lastName.getText();
+				    String EmailAddress = emailTextField.getText();
+				    String Password = userInfo.get("Password");
+				    String AccountType = userInfo.get("AccountType");
+
+				    User newUser = null;
+				    try {
+				        newUser = new User(UserID, FirstName, LastName, EmailAddress, Password, AccountType);
+				    } catch (SQLException e) {
+				        e.printStackTrace();
+				    }
+
+				    boolean updateUser = false;
+				    try {
+						updateUser = newUser.UpdateUser(newUser);
+					} catch (FailedUpdateException e) {
+						// TODO Auto-generated catch block
+						e.printStackTrace();
+					}
+				    if (updateUser) {
+				        Result.setText("User updated successfully");
+				    } 
+				} else {
+				    Result.setText("Invalid User ID!");
+				}
+            }
+        });
+
+
         return tab;
     }
     //// End 
@@ -99,7 +140,48 @@ public class AppUserProfile {
     /// Tab content for Add new Post
     private Tab createAddPostTab() {
         Tab tab = new Tab("Add Post");
-        tab.setContent(createForm("Add Post Content"));
+        
+        Label PostIDLabel = new Label("Post ID:");
+        Label PostContentLabel = new Label("Post Content:");
+        Label AuthorLabel = new Label("Author:");
+        Label LikesLabel = new Label("Likes:");
+        Label SharesLabel = new Label("Shares:");
+        Label DateTimeLabel = new Label("Date&Time(dd/MM/yyyy HH:mm format");
+
+        TextField PostIDField = new TextField();
+        TextField PostContentField = new TextField();
+        TextField AuthorField = new TextField();
+        TextField LikesField = new TextField();
+        TextField SharesField = new TextField();
+        TextField DateField = new TextField();
+        Button AddPostButton = new Button("Add Post");
+        Text Result = new Text();
+        
+        GridPane AddPostContent = createForm("User Profile");
+        
+        AddPostContent.add(PostIDLabel, 0, 1);
+        AddPostContent.add(PostIDField, 1, 1);
+        
+        AddPostContent.add(PostContentLabel, 0, 2);
+        AddPostContent.add(PostContentField, 1, 2);
+        
+        AddPostContent.add(AuthorLabel, 0, 3);
+        AddPostContent.add(AuthorField, 1, 3);
+        
+        AddPostContent.add(LikesLabel, 0, 4);
+        AddPostContent.add(LikesField, 1, 4);
+        
+        AddPostContent.add(SharesLabel, 0, 5);
+        AddPostContent.add(SharesField, 1, 5);
+        
+        AddPostContent.add(DateTimeLabel, 0, 6);
+        AddPostContent.add(DateField, 1, 6);
+        
+        AddPostContent.add(AddPostButton, 0, 7);
+        
+        AddPostContent.add(Result, 0, 8);
+        
+        tab.setContent(AddPostContent);
         return tab;
     }
     
@@ -107,19 +189,72 @@ public class AppUserProfile {
 
     private Tab createDeletePostTab() {
         Tab tab = new Tab("Delete Post");
-        tab.setContent(createForm("Delete Post Content"));
+        
+        Label PostIDLabel = new Label("Post ID:");
+        
+        TextField PostIDField = new TextField();
+        
+        Text Result = new Text();
+        
+        Button DeletePostButton = new Button("Delete Post");
+        
+        GridPane DeletePostContent = createForm("Delete Post by ID");
+        
+        DeletePostContent.add(PostIDLabel, 0, 1);
+        DeletePostContent.add(PostIDField, 1, 1);
+        DeletePostContent.add(DeletePostButton, 0, 2);
+        DeletePostContent.add(Result, 0, 3);
+        
+        tab.setContent(DeletePostContent);
         return tab;
     }
 
     private Tab createShowPostDetailsTab() {
         Tab tab = new Tab("Show Post Details");
-        tab.setContent(createForm("Show Post Details Content"));
+        
+        Label PostIDLabel = new Label("Post ID:");
+        
+        TextField PostIDField = new TextField();
+        
+        Text Result = new Text();
+        
+        Button GetPostButton = new Button("Get Post details");
+        
+        GridPane PostDetailsTab = createForm("Show Post Details by ID");
+        
+        PostDetailsTab.add(PostIDLabel, 0, 1);
+        PostDetailsTab.add(PostIDField, 1, 1);
+        PostDetailsTab.add(GetPostButton, 0, 2);
+        PostDetailsTab.add(Result, 0, 3);
+        
+        tab.setContent(PostDetailsTab);
         return tab;
     }
 
     private Tab createGetTopPostsTab() {
         Tab tab = new Tab("Get Top Posts");
-        tab.setContent(createForm("Get Top Posts Content"));
+        
+        Label GetTopPostByLabel = new Label("Select option to retrieve data");
+        
+        Label NumberofPostsLabel = new Label("Number of posts to retrieve");
+        
+        TextField NumberofPostsField = new TextField();
+        
+        ComboBox<String> comboBox = new ComboBox<>();
+        ObservableList<String> options = FXCollections.observableArrayList(
+                "Likes",
+                "Shares"
+        );
+        comboBox.setItems(options);
+        
+        GridPane GetTopPosts = createForm("Get Top Posts by likes or shares");
+        
+        GetTopPosts.add(GetTopPostByLabel, 0, 1);
+        GetTopPosts.add(comboBox, 1, 1);
+        GetTopPosts.add(NumberofPostsLabel, 0, 2);
+        GetTopPosts.add(NumberofPostsField, 0, 3);
+        
+        tab.setContent(GetTopPosts);
         return tab;
     }
 

@@ -7,6 +7,7 @@ import java.util.*;
 import appException.Exceptions;
 import appException.Exceptions.EmailExistsException;
 import appException.Exceptions.UserLoginInvalid;
+import appException.Exceptions.FailedUpdateException;
 import sqlitedb.SQLiteJDBC;
 
 public class User {
@@ -19,7 +20,7 @@ public class User {
     SQLiteJDBC dbConnection = new SQLiteJDBC();
     Connection con = dbConnection.getConnection();
 
-    public User( String FirstName, String LastName, String EmailAddress, String Password, String AccountType) throws SQLException {
+    public User( int UserID, String FirstName, String LastName, String EmailAddress, String Password, String AccountType) throws SQLException {
         this.UserID = UserID;
         this.EmailAddress = EmailAddress;
         this.FirstName = FirstName;
@@ -164,6 +165,32 @@ public class User {
             }
         } catch (SQLException e) {
             System.out.println("Error while inserting user: " + e.getMessage());
+        }
+
+        return false;
+    }
+    
+    
+    public boolean UpdateUser(User user) throws FailedUpdateException {
+        int userID = user.getUserID();
+        String EmailAddress = user.getEmailAddress();
+        String FirstName = user.getFirstName();
+        String LastName = user.getLastName();
+        try {
+            String query = "UPDATE users SET FirstName = ?, LastName = ?, EmailAddress = ? WHERE ID = ?";
+            PreparedStatement pstmt = con.prepareStatement(query);
+            pstmt.setString(1, FirstName);
+            pstmt.setString(2, LastName);
+            pstmt.setString(3, EmailAddress);
+            pstmt.setInt(4, userID);
+
+            int result = pstmt.executeUpdate();
+
+            if (result == 1) {
+                return true;
+            }
+        } catch (SQLException e) {
+            System.out.println("Error while updating user: " + e.getMessage());
         }
 
         return false;
