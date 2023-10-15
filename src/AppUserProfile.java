@@ -9,7 +9,8 @@ import javafx.scene.layout.GridPane;
 import javafx.scene.layout.VBox;
 import javafx.scene.text.Text;
 import javafx.stage.Stage;
-
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 import java.sql.SQLException;
 import java.util.Map;
 //import appException.Exceptions.FaildUpdateException;
@@ -21,7 +22,9 @@ public class AppUserProfile {
     private Label accountTypeLabel;
     private Stage primaryStage;
     private User user;
+    private Post post;
     private Map<String, String> userInfo;
+    private Map<String, String> postInfo;
 
     public AppUserProfile(Stage primaryStage, int userID) {
         this.primaryStage = primaryStage;
@@ -32,6 +35,8 @@ public class AppUserProfile {
         } else {
             System.err.println("User information is null for UserID: " + userID);
         }
+        
+        post = new Post();
     }
 
     private void initializeLabels() {
@@ -206,6 +211,8 @@ public class AppUserProfile {
         DeletePostContent.add(Result, 0, 3);
         
         tab.setContent(DeletePostContent);
+        
+        
         return tab;
     }
 
@@ -228,6 +235,29 @@ public class AppUserProfile {
         PostDetailsTab.add(Result, 0, 3);
         
         tab.setContent(PostDetailsTab);
+        
+        GetPostButton.setOnAction(new EventHandler<ActionEvent>() {
+            @Override
+            public void handle(ActionEvent event) {
+                int PostID = Integer.parseInt(PostIDField.getText());
+
+				if (PostID != 0) {
+					postInfo = post.GetPostDetails(PostID);
+					String PostContent = postInfo.get("PostContent");
+					String Author = postInfo.get("Author");
+					int Likes = Integer.parseInt(postInfo.get("Likes"));
+					int Shares = Integer.parseInt(postInfo.get("Shares"));
+					String dateTimeString = postInfo.get("DateTime");
+					
+					Result.setText("ID: " + PostID + "\n" +
+                            "Post Content: " + PostContent + "\n" +
+                            "Author: " + Author + "\n" +
+                            "Likes: " + Likes + "\n" +
+                            "Shares: " + Shares + "\n" +
+                            "Date & Time: " + dateTimeString);
+				}
+			}
+        });
         return tab;
     }
 
