@@ -15,6 +15,8 @@ import java.sql.SQLException;
 import java.util.Map;
 //import appException.Exceptions.FaildUpdateException;
 
+import appException.Exceptions;
+import appException.Exceptions.EmailExistsException;
 import appException.Exceptions.FailedUpdateException;
 import appException.Exceptions.PostIDInvalid;
 
@@ -152,7 +154,7 @@ public class AppUserProfile {
         Label AuthorLabel = new Label("Author:");
         Label LikesLabel = new Label("Likes:");
         Label SharesLabel = new Label("Shares:");
-        Label DateTimeLabel = new Label("Date&Time(dd/MM/yyyy HH:mm format");
+        Label DateTimeLabel = new Label("Date&Time(Format: dd/MM/yyyy HH:mm)");
 
         TextField PostIDField = new TextField();
         TextField PostContentField = new TextField();
@@ -189,54 +191,57 @@ public class AppUserProfile {
         
         tab.setContent(AddPostContent);
         
-        AddPostButton.setOnAction(event -> {
-            try {
-                int postID = Integer.parseInt(PostIDField.getText());
-
-                if (postID == 0) {
-                    Result.setText("Post ID cannot be zero.");
-                    return;
-                }
-
-                postInfo = post.GetPostDetails(postID);
-                if (postInfo != null) {
-                    Result.setText("Post with ID " + postID + " already exists.");
-                    return;
-                }
-
-                String postContent = PostContentField.getText();
-                String author = AuthorField.getText();
-                
-                int likes = 0;
-                int shares = 0;
-
-                try {
-                    likes = Integer.parseInt(LikesField.getText());
-                    shares = Integer.parseInt(SharesField.getText());
-                } catch (NumberFormatException e) {
-                    Result.setText("Likes and Shares must be non-negative integers.");
-                    return;
-                }
-
-                if (likes < 0 || shares < 0) {
-                    Result.setText("Likes and Shares must be non-negative integers.");
-                    return;
-                }
-
-                String dateTime = DateField.getText();
-
-                Post newPost = new Post(postID, postContent, author, likes, shares, dateTime);
-                boolean result = post.CreateNewPost(newPost);
-
-                if (result) {
-                    Result.setText("Post with ID " + postID + " successfully added.");
-                } else {
-                    Result.setText("Failed to add post with ID " + postID);
-                }
-
-            } catch (PostIDInvalid e) {
-                Result.setText("Invalid input for Post ID, Likes, or Shares.");
-            }
+        AddPostButton.setOnAction(new EventHandler<ActionEvent>() {
+        	 @Override
+             public void handle(ActionEvent event) {
+	            try {
+	                int postID = Integer.parseInt(PostIDField.getText());
+	
+	                if (postID == 0) {
+	                    Result.setText("Post ID cannot be zero.");
+	                    return;
+	                }
+	
+	                postInfo = post.GetPostDetails(postID);
+	                if (postInfo != null) {
+	                    Result.setText("Post with ID " + postID + " already exists.");
+	                    return;
+	                }
+	
+	                String postContent = PostContentField.getText();
+	                String author = AuthorField.getText();
+	                
+	                int likes = 0;
+	                int shares = 0;
+	
+	                try {
+	                    likes = Integer.parseInt(LikesField.getText());
+	                    shares = Integer.parseInt(SharesField.getText());
+	                } catch (NumberFormatException e) {
+	                    Result.setText("Likes and Shares must be non-negative integers.");
+	                    return;
+	                }
+	
+	                if (likes < 0 || shares < 0) {
+	                    Result.setText("Likes and Shares must be non-negative integers.");
+	                    return;
+	                }
+	
+	                String dateTime = DateField.getText();
+	
+	                Post newPost = new Post(postID, postContent, author, likes, shares, dateTime);
+	                boolean result = post.CreateNewPost(newPost);
+	
+	                if (result) {
+	                    Result.setText("Post with ID " + postID + " successfully added.");
+	                } else {
+	                    Result.setText("Failed to add post with ID " + postID);
+	                }
+	
+	            } catch (PostIDInvalid e) {
+	                Result.setText("Invalid input for Post ID, Likes, or Shares.");
+	            }
+        	 }
         });
 
         
@@ -265,6 +270,28 @@ public class AppUserProfile {
         
         tab.setContent(DeletePostContent);
         
+        DeletePostButton.setOnAction(new EventHandler<ActionEvent>() {
+	       	 @Override
+	            public void handle(ActionEvent event) {
+	       		try {
+	       	        int postID = Integer.parseInt(PostIDField.getText());
+	       	        Post post = new Post();
+
+	       	        if (!post.postIDExists(postID)) {
+	       	            Result.setText("Post ID is not valid or not exists.");
+	       	            return;
+	       	        }
+
+	       	        boolean QueryResult = post.DeletePost(postID);
+	       	        if(QueryResult) {
+	       	        	Result.setText("Post deleted successfully");
+	       	        }
+
+	       	    } catch (NumberFormatException e) {
+	       	        Result.setText("Invalid input for Post ID.");
+	       	    }
+	       	 }
+        	});
         
         return tab;
     }
@@ -292,25 +319,34 @@ public class AppUserProfile {
         GetPostButton.setOnAction(new EventHandler<ActionEvent>() {
             @Override
             public void handle(ActionEvent event) {
-                int PostID = Integer.parseInt(PostIDField.getText());
+                String postIDText = PostIDField.getText();
 
-				if (PostID != 0) {
-					postInfo = post.GetPostDetails(PostID);
-					String PostContent = postInfo.get("PostContent");
-					String Author = postInfo.get("Author");
-					int Likes = Integer.parseInt(postInfo.get("Likes"));
-					int Shares = Integer.parseInt(postInfo.get("Shares"));
-					String dateTimeString = postInfo.get("DateTime");
-					
-					Result.setText("ID: " + PostID + "\n" +
-                            "Post Content: " + PostContent + "\n" +
-                            "Author: " + Author + "\n" +
-                            "Likes: " + Likes + "\n" +
-                            "Shares: " + Shares + "\n" +
-                            "Date & Time: " + dateTimeString);
-				}
-			}
+                if (!postIDText.equals("")) {
+                    int postID = Integer.parseInt(postIDText);
+                    postInfo = post.GetPostDetails(postID);
+                    System.out.print(postInfo);
+                    if (!postInfo.isEmpty()) {
+                        String postContent = postInfo.get("Content");
+                        String author = postInfo.get("Author");
+                        int likes = Integer.parseInt(postInfo.get("Likes"));
+                        int shares = Integer.parseInt(postInfo.get("Shares"));
+                        String dateTimeString = postInfo.get("DateTime");
+
+                        Result.setText("ID: " + postID + "\n" +
+                                "Post Content: " + postContent + "\n" +
+                                "Author: " + author + "\n" +
+                                "Likes: " + likes + "\n" +
+                                "Shares: " + shares + "\n" +
+                                "Date & Time: " + dateTimeString);
+                    } else {
+                        Result.setText("Post with ID " + postID + " does not exist.");
+                    }
+                } else {
+                    Result.setText("Please enter a valid Post ID.");
+                }
+            }
         });
+
         return tab;
     }
 
@@ -330,6 +366,8 @@ public class AppUserProfile {
         );
         comboBox.setItems(options);
         
+        Button GetTopPostsButton = new Button("Get Posts");
+        
         GridPane GetTopPosts = createForm("Get Top Posts by likes or shares");
         
         GetTopPosts.add(GetTopPostByLabel, 0, 1);
@@ -339,6 +377,14 @@ public class AppUserProfile {
         
         tab.setContent(GetTopPosts);
         return tab;
+        
+        //GetTopPostsButton.setOnAction(new EventHandler<ActionEvent>() {
+           // @Override
+           // public void handle(ActionEvent event) {
+            	
+            //}
+        //});
+        
     }
 
     private GridPane createForm(String contentText) {

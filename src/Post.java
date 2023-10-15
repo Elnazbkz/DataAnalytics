@@ -10,7 +10,6 @@ import appException.Exceptions.PostIDInvalid;
 import sqlitedb.SQLiteJDBC;
 
 public class Post {
-	private static final Map<String, String> PostMap = null;
 	private int PostID;
 	private String PostContent;
 	private String Author;
@@ -70,6 +69,21 @@ public class Post {
 	    return false;
 	}
 	
+	public boolean DeletePost(int postID) {
+	    try (PreparedStatement stmt = con.prepareStatement("DELETE FROM posts WHERE ID = ?")) {
+	        stmt.setInt(1, postID);
+	        int affectedRows = stmt.executeUpdate();
+
+	        return affectedRows > 0;
+
+	    } catch (SQLException e) {
+	        System.out.println("Error while deleting the post: " + e.getMessage());
+	    }
+
+	    return false;
+	}
+
+	
 	public boolean CreateNewPost(Post post) throws PostIDInvalid{
 		boolean PostExsits = postIDExists(post.getPostID());
 		if (PostExsits) {
@@ -104,16 +118,16 @@ public class Post {
 	}
 	
 	public Map<String, String> GetPostDetails(int PostID) {
-    	Map<String, String> userMap = null;
-        try ( PreparedStatement stmt = con.prepareStatement("SELECT * FROM posts WHERE ID = " + PostID)) {
+		Map<String, String> PostMap = null;
+    	try ( PreparedStatement stmt = con.prepareStatement("SELECT * FROM posts WHERE ID = " + PostID)) {
             ResultSet resultSet = stmt.executeQuery();
-            HashMap PostMap = new HashMap<>();
+            PostMap = new HashMap<>();
             while (resultSet.next()) {
             	PostMap.put("ID", String.valueOf(resultSet.getInt("ID")));
-            	PostMap.put("PostContent", String.valueOf(resultSet.getString("PostContent")));
+            	PostMap.put("Content", String.valueOf(resultSet.getString("Content")));
             	PostMap.put("Author", String.valueOf(resultSet.getString("Author")));
-            	PostMap.put("Likes", String.valueOf(resultSet.getString("Likes")));
-            	PostMap.put("Shares", String.valueOf(resultSet.getString("Shares")));
+            	PostMap.put("Likes", String.valueOf(resultSet.getInt("Likes")));
+            	PostMap.put("Shares", String.valueOf(resultSet.getInt("Shares")));
             	PostMap.put("DateTime", String.valueOf(resultSet.getString("DateTime")));
             }
 

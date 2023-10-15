@@ -106,6 +106,7 @@ public class User {
             }
 
         } catch (SQLException e) {
+   
             System.out.println("Error while searching for the user: " + e.getMessage());
             return false;
         }
