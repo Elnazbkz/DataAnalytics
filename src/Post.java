@@ -139,9 +139,9 @@ public class Post {
     }
 	
 	
-	public Map<String, String> GetTopPosts(String Type , int Count) {
+	public Map<String, String> GetTopPosts(String Type , String Count) {
 		Map<String, String> PostMap = null;
-    	try ( PreparedStatement stmt = con.prepareStatement("SELECT * FROM posts ORDER BY " + Type + "LIMIT " + Count)) {
+    	try ( PreparedStatement stmt = con.prepareStatement("SELECT * FROM posts ORDER BY " + Type + " LIMIT " + Count)) {
             ResultSet resultSet = stmt.executeQuery();
             PostMap = new HashMap<>();
             while (resultSet.next()) {

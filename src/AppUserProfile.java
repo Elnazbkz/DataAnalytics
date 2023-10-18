@@ -356,7 +356,7 @@ public class AppUserProfile {
         
         Label NumberofPostsLabel = new Label("Number of posts to retrieve");
         
-        TextField NumberofPostsField = new TextField();
+        TextField NumberofPostsField = new TextField("2");
         
         
         ComboBox<String> comboBox = new ComboBox<>();
@@ -385,13 +385,13 @@ public class AppUserProfile {
             @Override
             public void handle(ActionEvent event) {
             	String Type = comboBox.getValue();
-            	int Count = 1;
+            	String Count = "2";
             	if (NumberofPostsField != null && !NumberofPostsField.getText().isEmpty()) {
-            		Count = Integer.parseInt(NumberofPostsField.getText());
+            		Count = NumberofPostsField.getText();
             	}
                 if (!Type.equals("")) {
                     postInfo = post.GetTopPosts(Type, Count);
-                    if (!postInfo.isEmpty()) {
+                    if (!(postInfo == null)) {
                     	int postID = Integer.parseInt(postInfo.get("ID"));
                         String postContent = postInfo.get("Content");
                         String author = postInfo.get("Author");
@@ -415,12 +415,6 @@ public class AppUserProfile {
         });
         return tab;
         
-        //GetTopPostsButton.setOnAction(new EventHandler<ActionEvent>() {
-           // @Override
-           // public void handle(ActionEvent event) {
-            	
-            //}
-        //});
         
     }
 
