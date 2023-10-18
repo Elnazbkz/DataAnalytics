@@ -358,6 +358,7 @@ public class AppUserProfile {
         
         TextField NumberofPostsField = new TextField();
         
+        
         ComboBox<String> comboBox = new ComboBox<>();
         ObservableList<String> options = FXCollections.observableArrayList(
                 "Likes",
@@ -367,14 +368,51 @@ public class AppUserProfile {
         
         Button GetTopPostsButton = new Button("Get Posts");
         
+        Text Result = new Text();
+        
         GridPane GetTopPosts = createForm("Get Top Posts by likes or shares");
         
         GetTopPosts.add(GetTopPostByLabel, 0, 1);
         GetTopPosts.add(comboBox, 1, 1);
         GetTopPosts.add(NumberofPostsLabel, 0, 2);
         GetTopPosts.add(NumberofPostsField, 0, 3);
+        GetTopPosts.add(GetTopPostsButton, 0, 4);
+        GetTopPosts.add(Result, 0, 5);
         
         tab.setContent(GetTopPosts);
+        
+        GetTopPostsButton.setOnAction(new EventHandler<ActionEvent>() {
+            @Override
+            public void handle(ActionEvent event) {
+            	String Type = comboBox.getValue();
+            	int Count = 1;
+            	if (NumberofPostsField != null && !NumberofPostsField.getText().isEmpty()) {
+            		Count = Integer.parseInt(NumberofPostsField.getText());
+            	}
+                if (!Type.equals("")) {
+                    postInfo = post.GetTopPosts(Type, Count);
+                    if (!postInfo.isEmpty()) {
+                    	int postID = Integer.parseInt(postInfo.get("ID"));
+                        String postContent = postInfo.get("Content");
+                        String author = postInfo.get("Author");
+                        int likes = Integer.parseInt(postInfo.get("Likes"));
+                        int shares = Integer.parseInt(postInfo.get("Shares"));
+                        String dateTimeString = postInfo.get("DateTime");
+
+                        Result.setText("ID: " + postID + "\n" +
+                                "Post Content: " + postContent + "\n" +
+                                "Author: " + author + "\n" +
+                                "Likes: " + likes + "\n" +
+                                "Shares: " + shares + "\n" +
+                                "Date & Time: " + dateTimeString);
+                    } else {
+                        Result.setText("Nothing found!");
+                    }
+                } else {
+                    Result.setText("Please Select Type");
+                }
+            }
+        });
         return tab;
         
         //GetTopPostsButton.setOnAction(new EventHandler<ActionEvent>() {

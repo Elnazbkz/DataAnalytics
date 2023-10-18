@@ -137,4 +137,26 @@ public class Post {
         
 		return PostMap;
     }
+	
+	
+	public Map<String, String> GetTopPosts(String Type , int Count) {
+		Map<String, String> PostMap = null;
+    	try ( PreparedStatement stmt = con.prepareStatement("SELECT * FROM posts ORDER BY " + Type + "LIMIT " + Count)) {
+            ResultSet resultSet = stmt.executeQuery();
+            PostMap = new HashMap<>();
+            while (resultSet.next()) {
+            	PostMap.put("ID", String.valueOf(resultSet.getInt("ID")));
+            	PostMap.put("Content", String.valueOf(resultSet.getString("Content")));
+            	PostMap.put("Author", String.valueOf(resultSet.getString("Author")));
+            	PostMap.put("Likes", String.valueOf(resultSet.getInt("Likes")));
+            	PostMap.put("Shares", String.valueOf(resultSet.getInt("Shares")));
+            	PostMap.put("DateTime", String.valueOf(resultSet.getString("DateTime")));
+            }
+
+        } catch (SQLException e) {
+        	System.out.println("Error while searching for the post: " + e.getMessage());
+        }
+        
+		return PostMap;
+    }
 }
