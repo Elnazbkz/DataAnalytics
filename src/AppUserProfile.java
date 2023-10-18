@@ -324,7 +324,6 @@ public class AppUserProfile {
                 if (!postIDText.equals("")) {
                     int postID = Integer.parseInt(postIDText);
                     postInfo = post.GetPostDetails(postID);
-                    System.out.print(postInfo);
                     if (!postInfo.isEmpty()) {
                         String postContent = postInfo.get("Content");
                         String author = postInfo.get("Author");
