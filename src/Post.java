@@ -1,12 +1,21 @@
+import java.io.BufferedReader;
+import java.io.FileNotFoundException;
+import java.io.FileReader;
+import java.io.FileWriter;
+import java.io.IOException;
+import java.io.Writer;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.time.LocalDateTime;
 import java.util.*;
 
 import appException.Exceptions;
 import appException.Exceptions.EmailExistsException;
 import appException.Exceptions.PostIDInvalid;
+import javafx.stage.FileChooser;
+import javafx.stage.Stage;
 import sqlitedb.SQLiteJDBC;
 
 public class Post {
@@ -54,8 +63,7 @@ public class Post {
 	}
 	
 	public boolean postIDExists(int postID) {
-	    try (PreparedStatement stmt = con.prepareStatement("SELECT * FROM posts WHERE ID = ?")) {
-	        stmt.setInt(1, postID);
+	    try (PreparedStatement stmt = con.prepareStatement("SELECT * FROM posts WHERE ID = " + postID)) {
 	        ResultSet resultSet = stmt.executeQuery();
 
 	        // Check if the result set has any rows
@@ -159,4 +167,89 @@ public class Post {
         
 		return PostMap;
     }
+	
+	
+	public String exportToCSV(int postID) {
+        // Assume postContent contains the data to be exported
+		
+        // Create a FileChooser to let the user choose the file location and name
+        FileChooser fileChooser = new FileChooser();
+        fileChooser.setTitle("Export Post to CSV");
+        fileChooser.getExtensionFilters().add(new FileChooser.ExtensionFilter("CSV Files", "*.csv"));
+
+        // Show save dialog
+        Stage stage = new Stage();
+        Writer writer = null;
+        String result = null;
+
+        try {
+            // Show save file dialog
+            java.io.File file = fileChooser.showSaveDialog(stage);
+            
+            if (file == null) {
+            	result = "Export cancelled";
+            }
+            
+            else {
+                writer = new FileWriter(file);
+                writer.write("PostID,Content,Author,Likes,Shares,DateTime\n"); // CSV header
+                try ( PreparedStatement stmt = con.prepareStatement("SELECT * FROM posts WHERE ID =  " + postID)) {
+                    ResultSet resultSet = stmt.executeQuery();
+                    while (resultSet.next()) {
+                        writer.write(resultSet.getInt("ID") + ",");
+                        writer.write(resultSet.getString("Content") + ",");
+                        writer.write(resultSet.getString("Author") + ",");
+                        writer.write(resultSet.getInt("Likes") + ",");
+                        writer.write(resultSet.getInt("Shares") + ",");
+                        writer.write(resultSet.getString("DateTime") + "\n");
+                    }
+
+                } catch (SQLException e) {
+                	System.out.println("Error while searching for the post: " + e.getMessage());
+                }
+                // Flush and close the writer
+                writer.flush();
+                writer.close();
+                result = "Post exported successfully";
+            } 
+
+        } catch (IOException e) {
+            e.printStackTrace();
+        } finally {
+            if (writer != null) {
+                try {
+                    writer.close();
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
+            }
+        }
+		return result;
+    }
+	
+	
+	public boolean SocialMediaPostImporter() throws NumberFormatException, FileNotFoundException, IOException {
+		String csvFile = "posts.csv"; // Specify your CSV file path
+	    try (BufferedReader br = new BufferedReader(new FileReader(csvFile))) { // try catch to get file data and shows message on error
+            String line; // define line as string
+            br.readLine(); // Skip header row
+            while ((line = br.readLine()) != null) { // reading rest of lines
+                String[] values = line.split(","); // split values of each line by , and put into array
+                int id = Integer.parseInt(values[0].trim()); // get id of post
+                String content = values[1].trim(); // get content of post
+                String author = values[2].trim(); // get author of post
+                int likes = Integer.parseInt(values[3].trim()); // get likes of post
+                int shares = Integer.parseInt(values[4].trim()); // get shares of post
+                String dateTime = values[5].trim(); // check format of the retrieved datetime
+                Post post = new Post(id, content, author, likes, shares, dateTime); // create an instance of post
+                post.CreateNewPost(post);
+                return true;
+            }
+        } catch (PostIDInvalid e) {
+			e.printStackTrace();
+		}
+        return false;
+	}
+	
+	
 }
