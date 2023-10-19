@@ -7,6 +7,7 @@ import javafx.event.EventHandler;
 import javafx.geometry.Pos;
 import javafx.scene.Scene;
 import javafx.scene.control.*;
+import javafx.scene.control.Alert.AlertType;
 import javafx.scene.layout.GridPane;
 import javafx.scene.text.Text;
 import javafx.stage.Stage;
@@ -45,10 +46,10 @@ public class AppRegisterGUIFX {
         return "Register in Platform";
     }
 
-    public Scene getScene() {
+    public Scene getScene() { 
         Text heading = new Text("Register");
 
-        Label emailLabel = new Label("Email:");
+        Label emailLabel = new Label("Email Address:");
         Label firstNameLabel = new Label("First Name:");
         Label lastNameLabel = new Label("Last Name:");
         Label passwordLabel = new Label("Password:");
@@ -73,9 +74,12 @@ public class AppRegisterGUIFX {
         		User user = null;
 				user = new User();
         		String EmailAddress = emailTextField.getText();
+        		Alert alert = new Alert(AlertType.INFORMATION);
         		try {
 					if(user.userEmailExists(EmailAddress) != 0) {
-						System.out.println("User exists");
+						alert.setTitle("Registration Failed.");
+						alert.setHeaderText("The email address is already exists.");
+						alert.setContentText("Please log in to access your profile.");
 						
 					}
 				} catch (EmailExistsException e) {
@@ -92,16 +96,24 @@ public class AppRegisterGUIFX {
         		try {
 					User NewUser = new User(UserID, firstNameValue, lastNameValue, EmailValue, passwordValue, accountTypeValue);
 					boolean result = user.createUser(NewUser);
+					
+					
 					if(result == true) {
-						System.out.println("User created");
+						alert.setTitle("Successfull Registration");
+						alert.setHeaderText("Your account created.");
+						alert.setContentText("Please log in to access your profile.");
 					}
 				} catch (SQLException e) {
 					// TODO Auto-generated catch block
 					e.printStackTrace();
 				} catch (EmailExistsException e) {
+					alert.setTitle("Registration Failed.");
+					alert.setHeaderText("The email address is already exists.");
+					alert.setContentText("Please log in to access your profile.");
 					// TODO Auto-generated catch block
 					e.printStackTrace();
 				}
+        		alert.showAndWait();
         	}
         });
 

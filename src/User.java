@@ -139,10 +139,10 @@ public class User {
     public boolean createUser(User user) throws EmailExistsException {
         int userExists = userEmailExists(user.getEmailAddress());
 
-        if (userExists != 0) {
-            Exceptions exceptions = new Exceptions();  // Create an instance of Exceptions
-            throw exceptions.new EmailExistsException("Email address already exists.");
-        }
+//        if (userExists != 0) {
+//            Exceptions exceptions = new Exceptions();  // Create an instance of Exceptions
+//            throw exceptions.new EmailExistsException("Email address already exists.");
+//        }
 
         String EmailAddress = user.getEmailAddress();
         String FirstName = user.getFirstName();
@@ -165,7 +165,7 @@ public class User {
                 return true;
             }
         } catch (SQLException e) {
-            System.out.println("Error while inserting user: " + e.getMessage());
+            
         }
 
         return false;
@@ -195,5 +195,38 @@ public class User {
         }
 
         return false;
+    }
+    
+    public boolean SetUserVIP(int UserID) throws FailedUpdateException {
+        try {
+            String query = "UPDATE users SET AccountType = 'VIP' WHERE ID = ?";
+            PreparedStatement pstmt = con.prepareStatement(query);
+            pstmt.setInt(1, UserID);
+            int result = pstmt.executeUpdate();
+            if (result == 1) {
+                return true;
+            }
+        } catch (SQLException e) {
+            System.out.println("Error while updating user: " + e.getMessage());
+        }
+        return false;
+    }
+    
+    
+    public String UserVIPStatus(int UserID) {
+    	String UserVIPStatus = null;
+        final String TABLE_NAME = "users";
+        try ( PreparedStatement stmt = con.prepareStatement("SELECT * FROM " + TABLE_NAME + " WHERE ID = " + UserID)) {
+            ResultSet resultSet = stmt.executeQuery();
+            while (resultSet.next()) {
+				UserVIPStatus = String.valueOf(resultSet.getString("AccountType"));
+            }
+
+        } catch (SQLException e) {
+        	System.out.println("Error while searching for the user: " + e.getMessage());
+        }
+        
+		return UserVIPStatus;
+		
     }
 }

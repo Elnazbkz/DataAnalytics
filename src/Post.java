@@ -116,7 +116,7 @@ public class Post {
             pstmt.setString(3, Author);
             pstmt.setInt(4, Likes);
             pstmt.setInt(5, Shares);
-            pstmt.setString(5, dateTime);
+            pstmt.setString(6, dateTime);
 
             int result = pstmt.executeUpdate();
 
@@ -147,30 +147,37 @@ public class Post {
         	System.out.println("Error while searching for the post: " + e.getMessage());
         }
         
-		return PostMap;
+		return PostMap; 
     }
 	
 	
-	public Map<String, String> GetTopPosts(String Type , String Count) {
-		Map<String, String> PostMap = null;
-    	try ( PreparedStatement stmt = con.prepareStatement("SELECT * FROM posts ORDER BY " + Type + " LIMIT " + Count)) {
-            ResultSet resultSet = stmt.executeQuery();
-            PostMap = new HashMap<>();
-            while (resultSet.next()) {
-            	PostMap.put("ID", String.valueOf(resultSet.getInt("ID")));
-            	PostMap.put("Content", String.valueOf(resultSet.getString("Content")));
-            	PostMap.put("Author", String.valueOf(resultSet.getString("Author")));
-            	PostMap.put("Likes", String.valueOf(resultSet.getInt("Likes")));
-            	PostMap.put("Shares", String.valueOf(resultSet.getInt("Shares")));
-            	PostMap.put("DateTime", String.valueOf(resultSet.getString("DateTime")));
-            }
+	public List<Map<String, String>> GetTopPosts(String Type, String Count) {
+	    List<Map<String, String>> postList = new ArrayList<>();
+	    int count = Integer.parseInt(Count);
 
-        } catch (SQLException e) {
-        	System.out.println("Error while searching for the post: " + e.getMessage());
-        }
-        
-		return PostMap;
-    }
+	    try (PreparedStatement stmt = con.prepareStatement("SELECT * FROM posts ORDER BY ? DESC LIMIT ?")) {
+	        stmt.setString(1, Type);
+	        stmt.setInt(2, count);
+	        ResultSet resultSet = stmt.executeQuery();
+
+	        while (resultSet.next()) {
+	            Map<String, String> postMap = new HashMap<>();
+	            postMap.put("ID", String.valueOf(resultSet.getInt("ID")));
+	            postMap.put("Content", resultSet.getString("Content"));
+	            postMap.put("Author", resultSet.getString("Author"));
+	            postMap.put("Likes", String.valueOf(resultSet.getInt("Likes")));
+	            postMap.put("Shares", String.valueOf(resultSet.getInt("Shares")));
+	            postMap.put("DateTime", resultSet.getString("DateTime"));
+
+	            postList.add(postMap);
+	        }
+	    } catch (SQLException e) {
+	        System.out.println("Error while searching for the posts: " + e.getMessage());
+	    }
+
+	    return postList;
+	}
+
 	
 	
 	public int GetSharesRange(int Lower, int Upper) {
@@ -271,13 +278,12 @@ public class Post {
         return false;
 	}
 	
-	public PieChart DataVisualization() {
+	public PieChart DataVisualization() { 
 		Post posts = new Post();
 	    // Count the posts in different share ranges (you should implement this logic)
 	    int count0To99 = posts.GetSharesRange(0, 99);
 	    int count100To999 =  posts.GetSharesRange(100, 999);
 	    int count1000Plus =  posts.GetSharesRange(1000, Integer.MAX_VALUE);
-
 	    ObservableList<PieChart.Data> pieChartData = FXCollections.observableArrayList(
 	        new PieChart.Data("0-99 Shares", count0To99),
 	        new PieChart.Data("100-999 Shares", count100To999),

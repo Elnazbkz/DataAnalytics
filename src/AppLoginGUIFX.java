@@ -6,10 +6,12 @@ import javafx.event.EventHandler;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
 import javafx.scene.Scene;
+import javafx.scene.control.Alert;
 import javafx.scene.control.Button;
 import javafx.scene.control.Label;
 import javafx.scene.control.PasswordField;
 import javafx.scene.control.TextField;
+import javafx.scene.control.Alert.AlertType;
 import javafx.scene.layout.GridPane;
 import javafx.scene.text.Text;
 import javafx.stage.Stage;
@@ -46,7 +48,7 @@ public class AppLoginGUIFX {
 	    Text heading = new Text("Login");
 
 	    // Generate Labels
-	    Label EmailLabel = new Label("Username:");
+	    Label EmailLabel = new Label("Email Address:");
 	    Label passwordLabel = new Label("Password:");
 
 	    // Generate TextFields
@@ -81,8 +83,14 @@ public class AppLoginGUIFX {
 					AppUserProfile profileScene = new AppUserProfile(primaryStage, UserID);
 				    primaryStage.setTitle(profileScene.getTitle());
 				    primaryStage.setScene(profileScene.getScene());
-					
 				}
+        		else {
+        			Alert alert = new Alert(AlertType.INFORMATION);
+        			alert.setTitle("Login Failed");
+					alert.setHeaderText("Login Failed!");
+					alert.setContentText("The email address or password is incorrect. Please try again");
+					alert.showAndWait();
+        		}
         	}
         });
 
@@ -113,25 +121,6 @@ public class AppLoginGUIFX {
 	
 }
 
-
-//class CalculateButtonEventHandler implements EventHandler<ActionEvent> {
-//	
-//	private SalaryLabelGUIFX guiInterface;
-//
-//	public CalculateButtonEventHandler(SalaryLabelGUIFX guiInterface) {
-//		this.guiInterface = guiInterface;
-//	}
-//	
-//	@Override
-//	public void handle(ActionEvent arg0) {
-//		double width = Double.parseDouble(guiInterface.getWidthTextField().getText());
-//		double height = Double.parseDouble(guiInterface.getHeightTextField().getText());
-//		
-//		double area = width * height;
-//		
-//		guiInterface.getOutputLabel().setText(Double.toString(area));
-//	}
-//}
 
 
 
