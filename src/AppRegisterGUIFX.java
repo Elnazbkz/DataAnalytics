@@ -1,3 +1,4 @@
+import java.sql.Connection;
 import java.sql.SQLException;
 
 import appException.Exceptions.EmailExistsException;
@@ -9,6 +10,7 @@ import javafx.scene.control.*;
 import javafx.scene.layout.GridPane;
 import javafx.scene.text.Text;
 import javafx.stage.Stage;
+import sqlitedb.SQLiteJDBC;
 
 public class AppRegisterGUIFX {
     private TextField firstName;
@@ -46,7 +48,7 @@ public class AppRegisterGUIFX {
     public Scene getScene() {
         Text heading = new Text("Register");
 
-        Label emailLabel = new Label("Email Address:");
+        Label emailLabel = new Label("Email:");
         Label firstNameLabel = new Label("First Name:");
         Label lastNameLabel = new Label("Last Name:");
         Label passwordLabel = new Label("Password:");
@@ -58,9 +60,6 @@ public class AppRegisterGUIFX {
 
         Button registerButton = new Button("Register Now");
         Button backButton = new Button("Back to Home");
-        
-        Text Result = new Text();
-        
         backButton.setOnAction(new EventHandler<ActionEvent>() {
             @Override
             public void handle(ActionEvent event) {
@@ -70,34 +69,41 @@ public class AppRegisterGUIFX {
         });
         
         registerButton.setOnAction(new EventHandler<ActionEvent>() {
-            public void handle(ActionEvent event) {
-                String firstNameValue = firstName.getText();
-                String lastNameValue = lastName.getText();
-                String emailValue = emailTextField.getText();
-                String passwordValue = passwordField.getText();
-                String accountTypeValue = "Basic";
-
-                User user = new User();
-
-                try {
-                    if (user.userEmailExists(emailValue) != 0) {
-                        Result.setText("Email Address exists. Please login to the platform to access your profile.");
-                    } else {
-                        User newUser = new User(0, firstNameValue, lastNameValue, emailValue, passwordValue, accountTypeValue);
-                        boolean result = user.createUser(newUser);
-
-                        if (result) {
-                            Result.setText("User account created. You can login to the platform using your email and password.");
-                        } else {
-                            Result.setText("User creation failed. Please try again.");
-                        }
-                    }
-                } catch (EmailExistsException | SQLException e) {
-                    Result.setText("Email Address exists. Please login to the platform to access your profile.");
-                }
-            }
+        	public void handle(ActionEvent event) {
+        		User user = null;
+				user = new User();
+        		String EmailAddress = emailTextField.getText();
+        		try {
+					if(user.userEmailExists(EmailAddress) != 0) {
+						System.out.println("User exists");
+						
+					}
+				} catch (EmailExistsException e) {
+					// TODO Auto-generated catch block
+					e.printStackTrace();
+				}
+        		String firstNameValue = firstName.getText();
+        		String lastNameValue = lastName.getText();
+        		String EmailValue = emailTextField.getText();
+        		String passwordValue = passwordField.getText();
+        		String accountTypeValue = "Basic";
+        		int UserID = 0;
+        		
+        		try {
+					User NewUser = new User(UserID, firstNameValue, lastNameValue, EmailValue, passwordValue, accountTypeValue);
+					boolean result = user.createUser(NewUser);
+					if(result == true) {
+						System.out.println("User created");
+					}
+				} catch (SQLException e) {
+					// TODO Auto-generated catch block
+					e.printStackTrace();
+				} catch (EmailExistsException e) {
+					// TODO Auto-generated catch block
+					e.printStackTrace();
+				}
+        	}
         });
-
 
         GridPane formGridPane = new GridPane();
         formGridPane.setAlignment(Pos.CENTER);
@@ -120,7 +126,6 @@ public class AppRegisterGUIFX {
 
         formGridPane.add(registerButton, 0, 5);
         formGridPane.add(backButton, 1, 5);
-        formGridPane.add(Result, 0, 6);
         
 
         Scene scene = new Scene(formGridPane, 400, 300);

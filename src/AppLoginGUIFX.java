@@ -46,14 +46,13 @@ public class AppLoginGUIFX {
 	    Text heading = new Text("Login");
 
 	    // Generate Labels
-	    Label EmailLabel = new Label("Email Address:");
+	    Label EmailLabel = new Label("Username:");
 	    Label passwordLabel = new Label("Password:");
 
 	    // Generate TextFields
 	    TextField EmailTextField = new TextField();
 	    TextField passwordTextField = new PasswordField();
 
-	    Text Result = new Text();
 	    // Generate Buttons
 	    Button loginButton = new Button("Login Now");
 	    Button backButton = new Button("Back to Home");
@@ -82,10 +81,8 @@ public class AppLoginGUIFX {
 					AppUserProfile profileScene = new AppUserProfile(primaryStage, UserID);
 				    primaryStage.setTitle(profileScene.getTitle());
 				    primaryStage.setScene(profileScene.getScene());
+					
 				}
-        		else {
-        			Result.setText("Email or password is incorrect. Please try again");
-        		}
         	}
         });
 
@@ -108,7 +105,7 @@ public class AppLoginGUIFX {
 	    // Buttons
 	    formGridPane.add(backButton, 0, 3);
 	    formGridPane.add(loginButton, 1, 3);
-	    formGridPane.add(Result, 0, 4);   
+	    
 
 	    Scene scene = new Scene(formGridPane, 400, 300); // Added width and height
 	    return scene;

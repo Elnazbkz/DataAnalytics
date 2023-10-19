@@ -12,7 +12,6 @@ import javafx.scene.text.Text;
 import javafx.stage.Stage;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
-import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.sql.SQLException;
 import java.util.Map;
@@ -24,165 +23,128 @@ import appException.Exceptions.FailedUpdateException;
 import appException.Exceptions.PostIDInvalid;
 
 public class AppUserProfile {
-	private Label fullNameLabel;
-	private Label accountTypeLabel;
-	private Stage primaryStage;
-	private User user;
-	private Post post;
-	private Map<String, String> userInfo;
-	private Map<String, String> postInfo;
-	private boolean isVIPUser = false;
+    private Label fullNameLabel;
+    private Label accountTypeLabel;
+    private Stage primaryStage;
+    private User user;
+    private Post post;
+    private Map<String, String> userInfo;
+    private Map<String, String> postInfo;
 
-	public AppUserProfile(Stage primaryStage, int userID) {
-		this.primaryStage = primaryStage;
-		user = new User();
-		userInfo = user.GetUserInfo(userID);
-		if (userInfo != null) {
-			initializeLabels();
-			isVIPUser = user.isVIPUser(userID);
-		} else {
-			System.err.println("User information is null for UserID: " + userID);
-		}
+    public AppUserProfile(Stage primaryStage, int userID) {
+        this.primaryStage = primaryStage;
+        user = new User();
+        userInfo = user.GetUserInfo(userID);
+        if (userInfo != null) {
+            initializeLabels();
+        } else {
+            System.err.println("User information is null for UserID: " + userID);
+        }
+        
+        post = new Post();
+    }
 
-		post = new Post();
-	}
+    private void initializeLabels() {
+        fullNameLabel = new Label("Welcome back: " + userInfo.get("FirstName") + " " + userInfo.get("LastName"));
+        accountTypeLabel = new Label("To edit your profile, please use the form below.");
+    }
 
-	private void initializeLabels() {
-		fullNameLabel = new Label("Welcome back: " + userInfo.get("FirstName") + " " + userInfo.get("LastName"));
-		accountTypeLabel = new Label("To edit your profile, please use the form below.");
-	}
+    public String getTitle() {
+        return "User Profile";
+    }
 
-	public String getTitle() {
-		return "User Profile";
-	}
+    public Scene getScene() {
+        // Call initializeLabels to create the labels
+        initializeLabels();
 
-	public Scene getScene() {
-		// Call initializeLabels to create the labels
-		initializeLabels();
+        TabPane tabPane = new TabPane();
+        tabPane.setTabClosingPolicy(TabPane.TabClosingPolicy.UNAVAILABLE); // Disable tab closing
+        tabPane.getTabs().addAll(createEditProfileTab(), createAddPostTab(), createDeletePostTab(),
+				createShowPostDetailsTab(), createGetTopPostsTab(), createPostExporterTab(),createPostImportTab(),
+				createDataVisualizationTab());
 
-		TabPane tabPane = new TabPane();
-		tabPane.setTabClosingPolicy(TabPane.TabClosingPolicy.UNAVAILABLE); // Disable tab closing
-		if (!isVIPUser) {
-			tabPane.getTabs().addAll(createEditProfileTab(), createAddPostTab(), createDeletePostTab(),
-					createShowPostDetailsTab(), createGetTopPostsTab(), createPostExporterTab());
-		} else {
-			tabPane.getTabs().addAll(createEditProfileTab(), createAddPostTab(), createDeletePostTab(),
-					createShowPostDetailsTab(), createGetTopPostsTab(), createPostExporterTab(),createPostImportTab(),
-					createDataVisualizationTab());
-		}
+        VBox vBox = new VBox(tabPane);
+        Scene scene = new Scene(vBox, 600, 400);
+        return scene;
+    }
+    
+    //// Tab content for Edit Profile
+    private Tab createEditProfileTab() {
+        Tab tab = new Tab("Edit Profile");
+        
+        Label emailLabel = new Label("Email:");
+        Label firstNameLabel = new Label("First Name:");
+        Label lastNameLabel = new Label("Last Name:");
 
-		VBox vBox = new VBox(tabPane);
-		Scene scene = new Scene(vBox, 800, 600);
-		return scene;
-	}
+        
+        TextField firstName = new TextField(userInfo.get("FirstName"));
+        TextField lastName = new TextField(userInfo.get("LastName"));
+        TextField emailTextField = new TextField(userInfo.get("EmailAddress"));
+        Button UpdateProfileButton = new Button("Update Profile");
+        Text Result = new Text();
+        GridPane editProfileContent = createForm("User Profile");
+        
+        // Add the labels and text fields to the form
+        editProfileContent.add(fullNameLabel, 0, 1);
+        editProfileContent.add(accountTypeLabel, 0, 2);
+        
+        editProfileContent.add(firstNameLabel,0, 3);
+        editProfileContent.add(firstName, 1, 3);
 
-	//// Tab content for Edit Profile
-	private Tab createEditProfileTab() {
-		Tab tab = new Tab("Edit Profile");
+        editProfileContent.add(lastNameLabel, 0, 4);
+        editProfileContent.add(lastName, 1, 4);
 
-		Label emailLabel = new Label("Email:");
-		Label firstNameLabel = new Label("First Name:");
-		Label lastNameLabel = new Label("Last Name:");
+        editProfileContent.add(emailLabel, 0, 5);
+        editProfileContent.add(emailTextField, 1, 5);
 
-		int CurrentUserID = Integer.parseInt(userInfo.get("ID"));
-		Label VIPLabel = new Label("Would you like to subscribe to the application for a monthly fee of $0?");
-		Button changeToVIP = new Button("Change to VIP");
-		Text VIPResult = new Text();
-
-		TextField firstName = new TextField(userInfo.get("FirstName"));
-		TextField lastName = new TextField(userInfo.get("LastName"));
-		TextField emailTextField = new TextField(userInfo.get("EmailAddress"));
-		Button UpdateProfileButton = new Button("Update Profile");
-		Text Result = new Text();
-		GridPane editProfileContent = createForm("User Profile");
-
-		// Add the labels and text fields to the form
-		editProfileContent.add(fullNameLabel, 0, 1);
-		editProfileContent.add(accountTypeLabel, 0, 2);
-
-		editProfileContent.add(firstNameLabel, 0, 3);
-		editProfileContent.add(firstName, 1, 3);
-
-		editProfileContent.add(lastNameLabel, 0, 4);
-		editProfileContent.add(lastName, 1, 4);
-
-		editProfileContent.add(emailLabel, 0, 5);
-		editProfileContent.add(emailTextField, 1, 5);
-
-		editProfileContent.add(Result, 0, 6);
-		editProfileContent.add(UpdateProfileButton, 0, 7);
-
-		if (!isVIPUser) {
-			editProfileContent.add(VIPLabel, 0, 8);
-			editProfileContent.add(changeToVIP, 1, 8);
-			editProfileContent.add(VIPResult, 0, 9);
-
-			/// button click handler
-			changeToVIP.setOnAction(new EventHandler<ActionEvent>() {
-				@Override
-				public void handle(ActionEvent event) {
-					int UserID = Integer.parseInt(userInfo.get("ID"));
-					try {
-						boolean changeToVipResult = user.UpdateUserToVIP(CurrentUserID);
-						if (changeToVipResult) {
-							VIPResult.setText("Please log out and log in again to access VIP functionalities.");
-						} else {
-							VIPResult.setText("update failed. Please try again");
-						}
-
-					} catch (FailedUpdateException e) {
-						// TODO Auto-generated catch block
-						e.printStackTrace();
-					}
-
-				}
-			});
-		}
-
-		tab.setContent(editProfileContent);
-
-		/// button click handler
-		UpdateProfileButton.setOnAction(new EventHandler<ActionEvent>() {
-			@Override
-			public void handle(ActionEvent event) {
-				int UserID = Integer.parseInt(userInfo.get("ID"));
+        editProfileContent.add(Result, 0, 6);
+        editProfileContent.add(UpdateProfileButton, 0, 8);
+        
+        tab.setContent(editProfileContent);
+        
+        /// button click handler
+        UpdateProfileButton.setOnAction(new EventHandler<ActionEvent>() {
+            @Override
+            public void handle(ActionEvent event) {
+                int UserID = Integer.parseInt(userInfo.get("ID"));
 
 				if (UserID != 0) {
-					String FirstName = firstName.getText();
-					String LastName = lastName.getText();
-					String EmailAddress = emailTextField.getText();
-					String Password = userInfo.get("Password");
-					String AccountType = userInfo.get("AccountType");
+				    String FirstName = firstName.getText();
+				    String LastName = lastName.getText();
+				    String EmailAddress = emailTextField.getText();
+				    String Password = userInfo.get("Password");
+				    String AccountType = userInfo.get("AccountType");
 
-					User newUser = null;
-					try {
-						newUser = new User(UserID, FirstName, LastName, EmailAddress, Password, AccountType);
-					} catch (SQLException e) {
-						e.printStackTrace();
-					}
+				    User newUser = null;
+				    try {
+				        newUser = new User(UserID, FirstName, LastName, EmailAddress, Password, AccountType);
+				    } catch (SQLException e) {
+				        e.printStackTrace();
+				    }
 
-					boolean updateUser = false;
-					try {
+				    boolean updateUser = false;
+				    try {
 						updateUser = newUser.UpdateUser(newUser);
 					} catch (FailedUpdateException e) {
 						// TODO Auto-generated catch block
 						e.printStackTrace();
 					}
-					if (updateUser) {
-						Result.setText("User updated successfully");
-					}
+				    if (updateUser) {
+				        Result.setText("User updated successfully");
+				    } 
 				} else {
-					Result.setText("Invalid User ID!");
+				    Result.setText("Invalid User ID!");
 				}
-			}
-		});
+            }
+        });
 
-		return tab;
-	}
-	//// End
 
-	/// Tab content for Add new Post
-	private Tab createAddPostTab() {
+        return tab;
+    }
+    //// End 
+    
+    /// Tab content for Add new Post
+    private Tab createAddPostTab() {
 		Tab tab = new Tab("Add Post");
 
 		Label PostIDLabel = new Label("Post ID:");
@@ -282,167 +244,178 @@ public class AppUserProfile {
 
 		return tab;
 	}
+    
+    /// End
 
-	/// End
+    private Tab createDeletePostTab() {
+        Tab tab = new Tab("Delete Post");
+        
+        Label PostIDLabel = new Label("Post ID:");
+        
+        TextField PostIDField = new TextField();
+        
+        Text Result = new Text();
+        
+        Button DeletePostButton = new Button("Delete Post");
+        
+        GridPane DeletePostContent = createForm("Delete Post by ID");
+        
+        DeletePostContent.add(PostIDLabel, 0, 1);
+        DeletePostContent.add(PostIDField, 1, 1);
+        DeletePostContent.add(DeletePostButton, 0, 2);
+        DeletePostContent.add(Result, 0, 3);
+        
+        tab.setContent(DeletePostContent);
+        
+        DeletePostButton.setOnAction(new EventHandler<ActionEvent>() {
+	       	 @Override
+	            public void handle(ActionEvent event) {
+	       		try {
+	       	        int postID = Integer.parseInt(PostIDField.getText());
+	       	        Post post = new Post();
 
-	private Tab createDeletePostTab() {
-		Tab tab = new Tab("Delete Post");
+	       	        if (!post.postIDExists(postID)) {
+	       	            Result.setText("Post ID is not valid or not exists.");
+	       	            return;
+	       	        }
 
-		Label PostIDLabel = new Label("Post ID:");
+	       	        boolean QueryResult = post.DeletePost(postID);
+	       	        if(QueryResult) {
+	       	        	Result.setText("Post deleted successfully");
+	       	        }
 
-		TextField PostIDField = new TextField();
+	       	    } catch (NumberFormatException e) {
+	       	        Result.setText("Invalid input for Post ID.");
+	       	    }
+	       	 }
+        	});
+        
+        return tab;
+    }
 
-		Text Result = new Text();
+    private Tab createShowPostDetailsTab() {
+        Tab tab = new Tab("Show Post Details");
+        
+        Label PostIDLabel = new Label("Post ID:");
+        
+        TextField PostIDField = new TextField();
+        
+        Text Result = new Text();
+        
+        Button GetPostButton = new Button("Get Post details");
+        
+        GridPane PostDetailsTab = createForm("Show Post Details by ID");
+        
+        PostDetailsTab.add(PostIDLabel, 0, 1);
+        PostDetailsTab.add(PostIDField, 1, 1);
+        PostDetailsTab.add(GetPostButton, 0, 2);
+        PostDetailsTab.add(Result, 0, 3);
+        
+        tab.setContent(PostDetailsTab);
+        
+        GetPostButton.setOnAction(new EventHandler<ActionEvent>() {
+            @Override
+            public void handle(ActionEvent event) {
+                String postIDText = PostIDField.getText();
 
-		Button DeletePostButton = new Button("Delete Post");
+                if (!postIDText.equals("")) {
+                    int postID = Integer.parseInt(postIDText);
+                    postInfo = post.GetPostDetails(postID);
+                    if (!postInfo.isEmpty()) {
+                        String postContent = postInfo.get("Content");
+                        String author = postInfo.get("Author");
+                        int likes = Integer.parseInt(postInfo.get("Likes"));
+                        int shares = Integer.parseInt(postInfo.get("Shares"));
+                        String dateTimeString = postInfo.get("DateTime");
 
-		GridPane DeletePostContent = createForm("Delete Post by ID");
+                        Result.setText("ID: " + postID + "\n" +
+                                "Post Content: " + postContent + "\n" +
+                                "Author: " + author + "\n" +
+                                "Likes: " + likes + "\n" +
+                                "Shares: " + shares + "\n" +
+                                "Date & Time: " + dateTimeString);
+                    } else {
+                        Result.setText("Post with ID " + postID + " does not exist.");
+                    }
+                } else {
+                    Result.setText("Please enter a valid Post ID.");
+                }
+            }
+        });
 
-		DeletePostContent.add(PostIDLabel, 0, 1);
-		DeletePostContent.add(PostIDField, 1, 1);
-		DeletePostContent.add(DeletePostButton, 0, 2);
-		DeletePostContent.add(Result, 0, 3);
+        return tab;
+    }
 
-		tab.setContent(DeletePostContent);
+    private Tab createGetTopPostsTab() {
+        Tab tab = new Tab("Get Top Posts");
+        
+        Label GetTopPostByLabel = new Label("Select option to retrieve data");
+        
+        Label NumberofPostsLabel = new Label("Number of posts to retrieve");
+        
+        TextField NumberofPostsField = new TextField("2");
+        
+        
+        ComboBox<String> comboBox = new ComboBox<>();
+        ObservableList<String> options = FXCollections.observableArrayList(
+                "Likes",
+                "Shares"
+        );
+        comboBox.setItems(options);
+        
+        Button GetTopPostsButton = new Button("Get Posts");
+        
+        Text Result = new Text();
+        
+        GridPane GetTopPosts = createForm("Get Top Posts by likes or shares");
+        
+        GetTopPosts.add(GetTopPostByLabel, 0, 1);
+        GetTopPosts.add(comboBox, 1, 1);
+        GetTopPosts.add(NumberofPostsLabel, 0, 2);
+        GetTopPosts.add(NumberofPostsField, 0, 3);
+        GetTopPosts.add(GetTopPostsButton, 0, 4);
+        GetTopPosts.add(Result, 0, 5);
+        
+        tab.setContent(GetTopPosts);
+        
+        GetTopPostsButton.setOnAction(new EventHandler<ActionEvent>() {
+            @Override
+            public void handle(ActionEvent event) {
+            	String Type = comboBox.getValue();
+            	String Count = "2";
+            	if (NumberofPostsField != null && !NumberofPostsField.getText().isEmpty()) {
+            		Count = NumberofPostsField.getText();
+            	}
+                if (!Type.equals("")) {
+                    postInfo = post.GetTopPosts(Type, Count);
+                    if (!(postInfo == null)) {
+                    	int postID = Integer.parseInt(postInfo.get("ID"));
+                        String postContent = postInfo.get("Content");
+                        String author = postInfo.get("Author");
+                        int likes = Integer.parseInt(postInfo.get("Likes"));
+                        int shares = Integer.parseInt(postInfo.get("Shares"));
+                        String dateTimeString = postInfo.get("DateTime");
 
-		DeletePostButton.setOnAction(new EventHandler<ActionEvent>() {
-			@Override
-			public void handle(ActionEvent event) {
-				try {
-					int postID = Integer.parseInt(PostIDField.getText());
-					Post post = new Post();
-
-					if (!post.postIDExists(postID)) {
-						Result.setText("Post ID is not valid or not exists.");
-						return;
-					}
-
-					boolean QueryResult = post.DeletePost(postID);
-					if (QueryResult) {
-						Result.setText("Post deleted successfully");
-					}
-
-				} catch (NumberFormatException e) {
-					Result.setText("Invalid input for Post ID.");
-				}
-			}
-		});
-
-		return tab;
-	}
-
-	private Tab createShowPostDetailsTab() {
-		Tab tab = new Tab("Show Post Details");
-
-		Label PostIDLabel = new Label("Post ID:");
-
-		TextField PostIDField = new TextField();
-
-		Text Result = new Text();
-
-		Button GetPostButton = new Button("Get Post details");
-
-		GridPane PostDetailsTab = createForm("Show Post Details by ID");
-
-		PostDetailsTab.add(PostIDLabel, 0, 1);
-		PostDetailsTab.add(PostIDField, 1, 1);
-		PostDetailsTab.add(GetPostButton, 0, 2);
-		PostDetailsTab.add(Result, 0, 3);
-
-		tab.setContent(PostDetailsTab);
-
-		GetPostButton.setOnAction(new EventHandler<ActionEvent>() {
-			@Override
-			public void handle(ActionEvent event) {
-				String postIDText = PostIDField.getText();
-
-				if (!postIDText.equals("")) {
-					int postID = Integer.parseInt(postIDText);
-					postInfo = post.GetPostDetails(postID);
-					if (!postInfo.isEmpty()) {
-						String postContent = postInfo.get("Content");
-						String author = postInfo.get("Author");
-						int likes = Integer.parseInt(postInfo.get("Likes"));
-						int shares = Integer.parseInt(postInfo.get("Shares"));
-						String dateTimeString = postInfo.get("DateTime");
-
-						Result.setText("ID: " + postID + "\n" + "Post Content: " + postContent + "\n" + "Author: "
-								+ author + "\n" + "Likes: " + likes + "\n" + "Shares: " + shares + "\n"
-								+ "Date & Time: " + dateTimeString);
-					} else {
-						Result.setText("Post with ID " + postID + " does not exist.");
-					}
-				} else {
-					Result.setText("Please enter a valid Post ID.");
-				}
-			}
-		});
-
-		return tab;
-	}
-
-	private Tab createGetTopPostsTab() {
-		Tab tab = new Tab("Get Top Posts");
-
-		Label GetTopPostByLabel = new Label("Select option to retrieve data");
-
-		Label NumberofPostsLabel = new Label("Number of posts to retrieve");
-
-		TextField NumberofPostsField = new TextField("2");
-
-		ComboBox<String> comboBox = new ComboBox<>();
-		ObservableList<String> options = FXCollections.observableArrayList("Likes", "Shares");
-		comboBox.setItems(options);
-
-		Button GetTopPostsButton = new Button("Get Posts");
-
-		Text Result = new Text();
-
-		GridPane GetTopPosts = createForm("Get Top Posts by likes or shares");
-
-		GetTopPosts.add(GetTopPostByLabel, 0, 1);
-		GetTopPosts.add(comboBox, 1, 1);
-		GetTopPosts.add(NumberofPostsLabel, 0, 2);
-		GetTopPosts.add(NumberofPostsField, 0, 3);
-		GetTopPosts.add(GetTopPostsButton, 0, 4);
-		GetTopPosts.add(Result, 0, 5);
-
-		tab.setContent(GetTopPosts);
-
-		GetTopPostsButton.setOnAction(new EventHandler<ActionEvent>() {
-			@Override
-			public void handle(ActionEvent event) {
-				String Type = comboBox.getValue();
-				String Count = "2";
-				if (NumberofPostsField != null && !NumberofPostsField.getText().isEmpty()) {
-					Count = NumberofPostsField.getText();
-				}
-				if (!Type.equals("")) {
-					postInfo = post.GetTopPosts(Type, Count);
-					if (!(postInfo == null)) {
-						int postID = Integer.parseInt(postInfo.get("ID"));
-						String postContent = postInfo.get("Content");
-						String author = postInfo.get("Author");
-						int likes = Integer.parseInt(postInfo.get("Likes"));
-						int shares = Integer.parseInt(postInfo.get("Shares"));
-						String dateTimeString = postInfo.get("DateTime");
-
-						Result.setText("ID: " + postID + "\n" + "Post Content: " + postContent + "\n" + "Author: "
-								+ author + "\n" + "Likes: " + likes + "\n" + "Shares: " + shares + "\n"
-								+ "Date & Time: " + dateTimeString);
-					} else {
-						Result.setText("Nothing found!");
-					}
-				} else {
-					Result.setText("Please Select Type");
-				}
-			}
-		});
-		return tab;
-
-	}
-
-	private Tab createPostExporterTab() {
+                        Result.setText("ID: " + postID + "\n" +
+                                "Post Content: " + postContent + "\n" +
+                                "Author: " + author + "\n" +
+                                "Likes: " + likes + "\n" +
+                                "Shares: " + shares + "\n" +
+                                "Date & Time: " + dateTimeString);
+                    } else {
+                        Result.setText("Nothing found!");
+                    }
+                } else {
+                    Result.setText("Please Select Type");
+                }
+            }
+        });
+        return tab;
+        
+        
+    }
+    
+    private Tab createPostExporterTab() {
 
 		Tab tab = new Tab("Export Post");
 
@@ -475,8 +448,8 @@ public class AppUserProfile {
 		return tab;
 
 	}
-	
-	private Tab createPostImportTab() {
+    
+    private Tab createPostImportTab() {
 		Tab tab = new Tab("Import Posts");
 		
 		Button ImportPosts = new Button("Click here to import posts");
@@ -502,6 +475,9 @@ public class AppUserProfile {
 				} catch (IOException e) {
 					e.printStackTrace();
 					Result.setText("Failed to import posts. Please try again");
+				} catch (PostIDInvalid e) {
+					// TODO Auto-generated catch block
+					e.printStackTrace();
 				}
 				
 			}
@@ -509,8 +485,8 @@ public class AppUserProfile {
 
 		return tab;
 	}
-
-	private Tab createDataVisualizationTab() {
+    
+    private Tab createDataVisualizationTab() {
 		Tab tab = new Tab("Data Visualization");
 		
 		PieChart Data = post.DataVisualization(); 
@@ -525,19 +501,20 @@ public class AppUserProfile {
 		return tab;
 
 	}
+    
 
-	private GridPane createForm(String contentText) {
-		GridPane formGridPane = new GridPane();
-		formGridPane.setAlignment(Pos.CENTER);
-		formGridPane.setHgap(10);
-		formGridPane.setVgap(10);
+    private GridPane createForm(String contentText) {
+        GridPane formGridPane = new GridPane();
+        formGridPane.setAlignment(Pos.CENTER);
+        formGridPane.setHgap(10);
+        formGridPane.setVgap(10);
 
-		// Add form components (labels, text fields, buttons, etc.)
-		Label contentLabel = new Label(contentText);
-		formGridPane.add(contentLabel, 0, 0);
+        // Add form components (labels, text fields, buttons, etc.)
+        Label contentLabel = new Label(contentText);
+        formGridPane.add(contentLabel, 0, 0);
 
-		// Add other form components as needed
+        // Add other form components as needed
 
-		return formGridPane;
-	}
+        return formGridPane;
+    }
 }

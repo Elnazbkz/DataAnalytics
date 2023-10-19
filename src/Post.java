@@ -1,5 +1,4 @@
 import java.io.BufferedReader;
-import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
@@ -11,6 +10,7 @@ import java.sql.SQLException;
 import java.util.*;
 
 import appException.Exceptions;
+import appException.Exceptions.EmailExistsException;
 import appException.Exceptions.PostIDInvalid;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
@@ -64,7 +64,7 @@ public class Post {
 	}
 	
 	public boolean postIDExists(int postID) {
-	    try (PreparedStatement stmt = con.prepareStatement("SELECT * FROM posts WHERE ID = " + postID)) {
+		try (PreparedStatement stmt = con.prepareStatement("SELECT * FROM posts WHERE ID = " + postID)) {
 	        ResultSet resultSet = stmt.executeQuery();
 
 	        // Check if the result set has any rows
@@ -77,6 +77,8 @@ public class Post {
 
 	    return false;
 	}
+	
+	
 	
 	public boolean DeletePost(int postID) {
 	    try (PreparedStatement stmt = con.prepareStatement("DELETE FROM posts WHERE ID = ?")) {
@@ -92,6 +94,7 @@ public class Post {
 	    return false;
 	}
 
+	
 	
 	public boolean CreateNewPost(Post post) throws PostIDInvalid{
 		boolean PostExsits = postIDExists(post.getPostID());
@@ -113,7 +116,7 @@ public class Post {
             pstmt.setString(3, Author);
             pstmt.setInt(4, Likes);
             pstmt.setInt(5, Shares);
-            pstmt.setString(6, dateTime);
+            pstmt.setString(5, dateTime);
 
             int result = pstmt.executeUpdate();
 
@@ -150,9 +153,7 @@ public class Post {
 	
 	public Map<String, String> GetTopPosts(String Type , String Count) {
 		Map<String, String> PostMap = null;
-		String query = "SELECT * FROM posts ORDER BY " + Type + " LIMIT " + Count;
-
-    	try ( PreparedStatement stmt = con.prepareStatement(query)) {
+    	try ( PreparedStatement stmt = con.prepareStatement("SELECT * FROM posts ORDER BY " + Type + " LIMIT " + Count)) {
             ResultSet resultSet = stmt.executeQuery();
             PostMap = new HashMap<>();
             while (resultSet.next()) {
@@ -189,16 +190,14 @@ public class Post {
 		return Count;
     }
 	
-	
 	public String exportToCSV(int postID) {
-        // Assume postContent contains the data to be exported
 		
-        // Create a FileChooser to let the user choose the file location and name
+		// Create a FileChooser to let the user choose the file location and name
         FileChooser fileChooser = new FileChooser();
         fileChooser.setTitle("Export Post to CSV");
         fileChooser.getExtensionFilters().add(new FileChooser.ExtensionFilter("CSV Files", "*.csv"));
-
-        // Show save dialog
+        
+     // Show save dialog
         Stage stage = new Stage();
         Writer writer = null;
         String result = null;
@@ -246,10 +245,10 @@ public class Post {
             }
         }
 		return result;
-    }
+	}
 	
 	
-	public boolean SocialMediaPostImporter() throws NumberFormatException, FileNotFoundException, IOException {
+	public boolean SocialMediaPostImporter() throws IOException, PostIDInvalid {
 		String csvFile = "posts.csv"; // Specify your CSV file path
 	    try (BufferedReader br = new BufferedReader(new FileReader(csvFile))) { // try catch to get file data and shows message on error
             String line; // define line as string
@@ -266,12 +265,11 @@ public class Post {
                 post.CreateNewPost(post);
             }
             return true;
-        } catch (PostIDInvalid e) {
-			e.printStackTrace();
+        } catch (IOException e) {
+        	System.out.println("Error while searching for the post: " + e.getMessage());
 		}
         return false;
 	}
-	
 	
 	public PieChart DataVisualization() {
 		Post posts = new Post();
@@ -285,11 +283,7 @@ public class Post {
 	        new PieChart.Data("100-999 Shares", count100To999),
 	        new PieChart.Data("1000+ Shares", count1000Plus)
 	    );
-
 	    final PieChart chart = new PieChart(pieChartData);
-
 	    return chart;
 	}
-	
-	
 }

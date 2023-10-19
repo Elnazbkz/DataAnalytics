@@ -171,25 +171,6 @@ public class User {
         return false;
     }
     
-    public boolean isVIPUser(int userID) {
-        try {
-            String query = "SELECT AccountType FROM users WHERE ID = ?";
-            PreparedStatement pstmt = con.prepareStatement(query);
-            pstmt.setInt(1, userID); // Set the user ID as a parameter
-
-            ResultSet resultSet = pstmt.executeQuery();
-
-            if (resultSet.next()) {
-                String accountType = resultSet.getString("AccountType");
-                return "VIP".equals(accountType); // Use equals() for string comparison
-            }
-        } catch (SQLException e) {
-            System.out.println("Error while checking user account type: " + e.getMessage());
-        }
-        
-        return false;
-    }
-    
     
     public boolean UpdateUser(User user) throws FailedUpdateException {
         int userID = user.getUserID();
@@ -206,22 +187,6 @@ public class User {
 
             int result = pstmt.executeUpdate();
 
-            if (result == 1) {
-                return true;
-            }
-        } catch (SQLException e) {
-            System.out.println("Error while updating user: " + e.getMessage());
-        }
-
-        return false;
-    }
-    
-    
-    public boolean UpdateUserToVIP(int UserID) throws FailedUpdateException {
-        try {
-            String query = "UPDATE users SET AccountType = 'VIP' WHERE ID = " + UserID;
-            PreparedStatement pstmt = con.prepareStatement(query);
-            int result = pstmt.executeUpdate();
             if (result == 1) {
                 return true;
             }
