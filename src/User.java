@@ -219,7 +219,7 @@ public class User {
     
     public boolean UpdateUserToVIP(int UserID) throws FailedUpdateException {
         try {
-            String query = "UPDATE users SET AccountType = VIP WHERE ID = " + UserID;
+            String query = "UPDATE users SET AccountType = 'VIP' WHERE ID = " + UserID;
             PreparedStatement pstmt = con.prepareStatement(query);
             int result = pstmt.executeUpdate();
             if (result == 1) {

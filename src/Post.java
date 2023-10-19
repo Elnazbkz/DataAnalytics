@@ -8,12 +8,13 @@ import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
-import java.time.LocalDateTime;
 import java.util.*;
 
 import appException.Exceptions;
-import appException.Exceptions.EmailExistsException;
 import appException.Exceptions.PostIDInvalid;
+import javafx.collections.FXCollections;
+import javafx.collections.ObservableList;
+import javafx.scene.chart.PieChart;
 import javafx.stage.FileChooser;
 import javafx.stage.Stage;
 import sqlitedb.SQLiteJDBC;
@@ -112,7 +113,7 @@ public class Post {
             pstmt.setString(3, Author);
             pstmt.setInt(4, Likes);
             pstmt.setInt(5, Shares);
-            pstmt.setString(5, dateTime);
+            pstmt.setString(6, dateTime);
 
             int result = pstmt.executeUpdate();
 
@@ -149,7 +150,9 @@ public class Post {
 	
 	public Map<String, String> GetTopPosts(String Type , String Count) {
 		Map<String, String> PostMap = null;
-    	try ( PreparedStatement stmt = con.prepareStatement("SELECT * FROM posts ORDER BY " + Type + " LIMIT " + Count)) {
+		String query = "SELECT * FROM posts ORDER BY " + Type + " LIMIT " + Count;
+
+    	try ( PreparedStatement stmt = con.prepareStatement(query)) {
             ResultSet resultSet = stmt.executeQuery();
             PostMap = new HashMap<>();
             while (resultSet.next()) {
@@ -166,6 +169,24 @@ public class Post {
         }
         
 		return PostMap;
+    }
+	
+	
+	public int GetSharesRange(int Lower, int Upper) {
+		int Count = 0;
+		String query = "SELECT COUNT(*) FROM posts WHERE Shares >= " + Lower + " AND Shares <= " + Upper;
+		
+    	try ( PreparedStatement stmt = con.prepareStatement(query)) {
+            ResultSet resultSet = stmt.executeQuery();
+            if (resultSet.next()) {
+            	Count = resultSet.getInt(1);
+            }
+
+        } catch (SQLException e) {
+        	System.out.println("Error while searching for the post: " + e.getMessage());
+        }
+        
+		return Count;
     }
 	
 	
@@ -243,12 +264,31 @@ public class Post {
                 String dateTime = values[5].trim(); // check format of the retrieved datetime
                 Post post = new Post(id, content, author, likes, shares, dateTime); // create an instance of post
                 post.CreateNewPost(post);
-                return true;
             }
+            return true;
         } catch (PostIDInvalid e) {
 			e.printStackTrace();
 		}
         return false;
+	}
+	
+	
+	public PieChart DataVisualization() {
+		Post posts = new Post();
+	    // Count the posts in different share ranges (you should implement this logic)
+	    int count0To99 = posts.GetSharesRange(0, 99);
+	    int count100To999 =  posts.GetSharesRange(100, 999);
+	    int count1000Plus =  posts.GetSharesRange(1000, Integer.MAX_VALUE);
+
+	    ObservableList<PieChart.Data> pieChartData = FXCollections.observableArrayList(
+	        new PieChart.Data("0-99 Shares", count0To99),
+	        new PieChart.Data("100-999 Shares", count100To999),
+	        new PieChart.Data("1000+ Shares", count1000Plus)
+	    );
+
+	    final PieChart chart = new PieChart(pieChartData);
+
+	    return chart;
 	}
 	
 	

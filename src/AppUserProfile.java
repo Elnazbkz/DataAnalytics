@@ -4,6 +4,7 @@ import javafx.event.ActionEvent;
 import javafx.event.EventHandler;
 import javafx.geometry.Pos;
 import javafx.scene.Scene;
+import javafx.scene.chart.PieChart;
 import javafx.scene.control.*;
 import javafx.scene.layout.GridPane;
 import javafx.scene.layout.VBox;
@@ -11,6 +12,8 @@ import javafx.scene.text.Text;
 import javafx.stage.Stage;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
+import java.io.FileNotFoundException;
+import java.io.IOException;
 import java.sql.SQLException;
 import java.util.Map;
 //import appException.Exceptions.FaildUpdateException;
@@ -64,7 +67,7 @@ public class AppUserProfile {
 					createShowPostDetailsTab(), createGetTopPostsTab(), createPostExporterTab());
 		} else {
 			tabPane.getTabs().addAll(createEditProfileTab(), createAddPostTab(), createDeletePostTab(),
-					createShowPostDetailsTab(), createGetTopPostsTab(), createPostExporterTab(),
+					createShowPostDetailsTab(), createGetTopPostsTab(), createPostExporterTab(),createPostImportTab(),
 					createDataVisualizationTab());
 		}
 
@@ -472,36 +475,53 @@ public class AppUserProfile {
 		return tab;
 
 	}
+	
+	private Tab createPostImportTab() {
+		Tab tab = new Tab("Import Posts");
+		
+		Button ImportPosts = new Button("Click here to import posts");
+		
+		Text Result = new Text("");
+		
+		GridPane ImportPostContent = createForm("Import posts into database");
+
+		ImportPostContent.add(ImportPosts, 0, 1);
+		
+		tab.setContent(ImportPostContent);
+		
+		ImportPosts.setOnAction(new EventHandler<ActionEvent>() {
+			@Override
+			public void handle(ActionEvent event) {
+				
+				boolean ExportResult;
+				try {
+					ExportResult = post.SocialMediaPostImporter();
+					if(ExportResult) {
+						Result.setText("Posts successfully imported into databse");
+					}
+				} catch (IOException e) {
+					e.printStackTrace();
+					Result.setText("Failed to import posts. Please try again");
+				}
+				
+			}
+		});
+
+		return tab;
+	}
 
 	private Tab createDataVisualizationTab() {
 		Tab tab = new Tab("Data Visualization");
+		
+		PieChart Data = post.DataVisualization(); 
+		
+		GridPane DataVisualizationContent = createForm("Get Top Posts by likes or shares");
 
-		Label PostIDLabel = new Label("Post ID");
+		DataVisualizationContent.add(Data, 0, 1);
 
-		TextField PostIDField = new TextField("2");
 
-		Button GetTopPostsButton = new Button("Export into csv file");
+		tab.setContent(DataVisualizationContent);
 
-		Text Result = new Text();
-
-		GridPane GetTopPosts = createForm("Get Top Posts by likes or shares");
-
-		GetTopPosts.add(PostIDLabel, 0, 1);
-		GetTopPosts.add(PostIDField, 1, 1);
-		GetTopPosts.add(GetTopPostsButton, 0, 2);
-		GetTopPosts.add(Result, 0, 3);
-
-		tab.setContent(GetTopPosts);
-
-		GetTopPostsButton.setOnAction(new EventHandler<ActionEvent>() {
-			@Override
-			public void handle(ActionEvent event) {
-				int postID = Integer.parseInt(PostIDField.getText());
-
-				String ExportResult = post.exportToCSV(postID);
-				Result.setText(ExportResult);
-			}
-		});
 		return tab;
 
 	}
