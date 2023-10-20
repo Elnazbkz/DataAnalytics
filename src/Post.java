@@ -154,7 +154,9 @@ public class Post {
 	    List<Map<String, String>> postList = new ArrayList<>();
 	    int count = Integer.parseInt(Count);
 	    
-	    try (PreparedStatement stmt = con.prepareStatement("SELECT * FROM posts ORDER BY " + Type +" DESC LIMIT "+ count)) {
+		try (PreparedStatement stmt = con
+				.prepareStatement("SELECT * FROM posts ORDER BY " + Type + " DESC LIMIT " + count)) {
+
 	        ResultSet resultSet = stmt.executeQuery();
 	        
 	        while (resultSet.next()) {
