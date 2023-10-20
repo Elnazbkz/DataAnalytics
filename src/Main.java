@@ -7,7 +7,7 @@ import sqlitedb.SQLiteJDBC;
 public class Main extends Application {
 	@Override // Override the start method in the Application class
 	public void start(Stage primaryStage) throws IOException {
-		AppFirstPage FirstPage = new AppFirstPage(primaryStage);
+		AppFirstPage FirstPage = new AppFirstPage(primaryStage); // get first page
 		primaryStage.setTitle(FirstPage.getTitle()); // Set the stage title
 		primaryStage.setScene(FirstPage.getScene()); // Place the scene in the stage
 		primaryStage.setHeight(600);
@@ -15,7 +15,7 @@ public class Main extends Application {
 		primaryStage.show(); // Display the stage
 	}
 	public static void main(String[] args) {
-		SQLiteJDBC dbconn = new SQLiteJDBC();
+		SQLiteJDBC dbconn = new SQLiteJDBC(); // make db connection
 		launch(args);
 	}
 }

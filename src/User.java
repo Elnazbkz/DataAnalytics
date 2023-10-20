@@ -53,6 +53,7 @@ public class User {
 	public String getPassword() {
 		return Password;
 	}
+
 	public String getAccoubntType() {
 		return AccountType;
 	}
@@ -76,10 +77,12 @@ public class User {
 	public void setPassword(String password) {
 		this.Password = password;
 	}
+
 	public void setAccountType(String AccountType) {
 		this.AccountType = AccountType;
 	}
 
+	// method to return user id if user id exists
 	public int userEmailExists(String EmailAddress) throws EmailExistsException {
 
 		try (PreparedStatement stmt = con.prepareStatement("SELECT * FROM users WHERE EmailAddress = ?")) {
@@ -96,6 +99,7 @@ public class User {
 		}
 	}
 
+	// methoud to validate login details
 	public boolean userLoginValidation(String EmailAddress, String Password) throws UserLoginInvalid {
 
 		try (PreparedStatement stmt = con.prepareStatement("SELECT * FROM users WHERE EmailAddress = ?")) {
@@ -115,10 +119,10 @@ public class User {
 		return false;
 	}
 
+	// method to get user details by user id
 	public Map<String, String> GetUserInfo(int UserID) {
 		Map<String, String> userMap = null;
-		final String TABLE_NAME = "users";
-		try (PreparedStatement stmt = con.prepareStatement("SELECT * FROM " + TABLE_NAME + " WHERE ID = " + UserID)) {
+		try (PreparedStatement stmt = con.prepareStatement("SELECT * FROM users WHERE ID = " + UserID)) {
 			ResultSet resultSet = stmt.executeQuery();
 			userMap = new HashMap<>();
 			while (resultSet.next()) {
@@ -138,6 +142,7 @@ public class User {
 
 	}
 
+	// method to create a new user
 	public boolean createUser(User user) throws EmailExistsException {
 		String EmailAddress = user.getEmailAddress();
 		String FirstName = user.getFirstName();
@@ -156,7 +161,7 @@ public class User {
 
 			int result = pstmt.executeUpdate();
 
-			if (result == 1) {
+			if (result == 1) { // return true if user created
 				return true;
 			}
 		} catch (SQLException e) {
@@ -166,6 +171,7 @@ public class User {
 		return false;
 	}
 
+	// method to update user details
 	public boolean UpdateUser(User user) throws FailedUpdateException {
 		int userID = user.getUserID();
 		String EmailAddress = user.getEmailAddress();
@@ -191,6 +197,7 @@ public class User {
 		return false;
 	}
 
+	// method to change user account type to VIP
 	public boolean SetUserVIP(int UserID) throws FailedUpdateException {
 		try {
 			String query = "UPDATE users SET AccountType = 'VIP' WHERE ID = ?";
@@ -206,10 +213,10 @@ public class User {
 		return false;
 	}
 
+	// method to get User Account type
 	public String UserVIPStatus(int UserID) {
 		String UserVIPStatus = null;
-		final String TABLE_NAME = "users";
-		try (PreparedStatement stmt = con.prepareStatement("SELECT * FROM " + TABLE_NAME + " WHERE ID = " + UserID)) {
+		try (PreparedStatement stmt = con.prepareStatement("SELECT * FROM users WHERE ID = " + UserID)) {
 			ResultSet resultSet = stmt.executeQuery();
 			while (resultSet.next()) {
 				UserVIPStatus = String.valueOf(resultSet.getString("AccountType"));
