@@ -1,5 +1,7 @@
 import java.sql.Connection;
 import java.sql.SQLException;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 import appException.Exceptions.EmailExistsException;
 import javafx.event.ActionEvent;
@@ -73,8 +75,43 @@ public class AppRegisterGUIFX {
         	public void handle(ActionEvent event) {
         		User user = null;
 				user = new User();
+				String firstNameValue = firstName.getText();
+        		String lastNameValue = lastName.getText();
+        		String EmailValue = emailTextField.getText();
+        		String passwordValue = passwordField.getText();
+        		String accountTypeValue = "Basic";
+        		int UserID = 0;
         		String EmailAddress = emailTextField.getText();
         		Alert alert = new Alert(AlertType.INFORMATION);
+        		if (firstNameValue.isEmpty() || lastNameValue.isEmpty() || EmailValue.isEmpty() || passwordValue.isEmpty()) {
+                    alert.setTitle("Registration Failed");
+                    alert.setHeaderText("Missing Information");
+                    alert.setContentText("Please provide all data requested to register.");
+                    alert.showAndWait();
+                    return; // Exit the method if any field is empty
+                }
+        		
+        		// Regular expression for a simple email format validation
+                String emailRegex = "^[A-Za-z0-9+_.-]+@(.+)$";
+                Pattern pattern = Pattern.compile(emailRegex);
+                Matcher matcher = pattern.matcher(EmailAddress);
+
+                if (!matcher.matches()) {
+                    alert.setTitle("Login Failed");
+                    alert.setHeaderText("Invalid Email Format");
+                    alert.setContentText("Please enter a valid email address.");
+                    alert.showAndWait();
+                    return; // Exit the method if the email format is invalid
+                }
+                
+                if (passwordValue.length() < 8) {
+                    alert.setTitle("Registration Failed");
+                    alert.setHeaderText("Invalid Password");
+                    alert.setContentText("Password must be at least 8 characters long.");
+                    alert.showAndWait();
+                    return; // Exit the method if the password is too short
+                }
+                
         		try {
 					if(user.userEmailExists(EmailAddress) != 0) {
 						alert.setTitle("Registration Failed.");
@@ -86,12 +123,7 @@ public class AppRegisterGUIFX {
 					// TODO Auto-generated catch block
 					e.printStackTrace();
 				}
-        		String firstNameValue = firstName.getText();
-        		String lastNameValue = lastName.getText();
-        		String EmailValue = emailTextField.getText();
-        		String passwordValue = passwordField.getText();
-        		String accountTypeValue = "Basic";
-        		int UserID = 0;
+        		
         		
         		try {
 					User NewUser = new User(UserID, firstNameValue, lastNameValue, EmailValue, passwordValue, accountTypeValue);

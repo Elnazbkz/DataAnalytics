@@ -10,8 +10,8 @@ public class Main extends Application {
 		AppFirstPage FirstPage = new AppFirstPage(primaryStage);
 		primaryStage.setTitle(FirstPage.getTitle()); // Set the stage title
 		primaryStage.setScene(FirstPage.getScene()); // Place the scene in the stage
-		primaryStage.setHeight(400);
-		primaryStage.setWidth(600);
+		primaryStage.setHeight(600);
+		primaryStage.setWidth(800);
 		primaryStage.show(); // Display the stage
 	}
 	public static void main(String[] args) {

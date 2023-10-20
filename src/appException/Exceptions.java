@@ -22,6 +22,17 @@ public class Exceptions {
 		public PostIDInvalid(String message) {
 			super(message);
 		}
+		public PostIDInvalid() {
+			super();
+		}
+		
+	}
+	
+	public class PostIDExists extends Exception {
+		public PostIDExists() {
+			super();
+		}
+		
 	}
 }
 

@@ -10,7 +10,7 @@ import java.sql.SQLException;
 import java.util.*;
 
 import appException.Exceptions;
-import appException.Exceptions.EmailExistsException;
+import appException.Exceptions.PostIDExists;
 import appException.Exceptions.PostIDInvalid;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
@@ -18,6 +18,7 @@ import javafx.scene.chart.PieChart;
 import javafx.stage.FileChooser;
 import javafx.stage.Stage;
 import sqlitedb.SQLiteJDBC;
+
 
 public class Post {
 	private int PostID;
@@ -28,19 +29,18 @@ public class Post {
 	private String dateTime;
 	SQLiteJDBC dbConnection = new SQLiteJDBC();
     Connection con = dbConnection.getConnection();
+
+    public Post(int PostID, String PostContent, String Author, int Likes, int Shares, String DateTime) {
+        this.PostID = PostID;
+        this.PostContent = PostContent;
+        this.Author = Author;
+        this.Likes = Likes;
+        this.Shares = Shares;
+        this.dateTime = DateTime;
+    }
 	
-	public Post (int PostID, String PostContent, String Author, int Likes, int Shares, String dateTime) {
-		this.PostID = PostID;
-		this.PostContent = PostContent;
-		this.Author = Author;
-		this.Likes = Likes;
-		this.Shares = Shares;
-		this.dateTime = dateTime;
-	}
-	
-	public Post() {
-		
-	}
+    public Post() {
+    }
 	
 	public int getPostID() {
 		return PostID;
@@ -96,18 +96,17 @@ public class Post {
 
 	
 	
-	public boolean CreateNewPost(Post post) throws PostIDInvalid{
+	public boolean CreateNewPost(Post post) throws PostIDInvalid, PostIDExists{
 		boolean PostExsits = postIDExists(post.getPostID());
 		if (PostExsits) {
-            Exceptions exceptions = new Exceptions();  // Create an instance of Exceptions
-            throw exceptions.new PostIDInvalid("Post ID exists, please choose a unique post ID.");
+			throw new Exceptions().new PostIDExists();
         }
 		int postID = post.getPostID();
 		String PostContent = post.getPostContent();
 		String Author = post.getAuthor();
 		int Likes = post.getLikes();
 		int Shares = post.getShares();
-		String dateTime = post.getDateTime();
+		String dateTime = post.getDateTime(); 
 		try {
             String query = "INSERT INTO posts (ID, Content, Author, Likes, Shares, DateTime) VALUES (?, ?, ?, ?, ?, ?)";
             PreparedStatement pstmt = con.prepareStatement(query);
@@ -154,12 +153,10 @@ public class Post {
 	public List<Map<String, String>> GetTopPosts(String Type, String Count) {
 	    List<Map<String, String>> postList = new ArrayList<>();
 	    int count = Integer.parseInt(Count);
-
-	    try (PreparedStatement stmt = con.prepareStatement("SELECT * FROM posts ORDER BY ? DESC LIMIT ?")) {
-	        stmt.setString(1, Type);
-	        stmt.setInt(2, count);
+	    
+	    try (PreparedStatement stmt = con.prepareStatement("SELECT * FROM posts ORDER BY " + Type +" DESC LIMIT "+ count)) {
 	        ResultSet resultSet = stmt.executeQuery();
-
+	        
 	        while (resultSet.next()) {
 	            Map<String, String> postMap = new HashMap<>();
 	            postMap.put("ID", String.valueOf(resultSet.getInt("ID")));
@@ -197,7 +194,7 @@ public class Post {
 		return Count;
     }
 	
-	public String exportToCSV(int postID) {
+public boolean exportToCSV(int postID) {
 		
 		// Create a FileChooser to let the user choose the file location and name
         FileChooser fileChooser = new FileChooser();
@@ -207,20 +204,21 @@ public class Post {
      // Show save dialog
         Stage stage = new Stage();
         Writer writer = null;
-        String result = null;
+        boolean result = false;
 
         try {
             // Show save file dialog
             java.io.File file = fileChooser.showSaveDialog(stage);
             
             if (file == null) {
-            	result = "Export cancelled";
+            	result = false;
             }
             
             else {
                 writer = new FileWriter(file);
                 writer.write("PostID,Content,Author,Likes,Shares,DateTime\n"); // CSV header
-                try ( PreparedStatement stmt = con.prepareStatement("SELECT * FROM posts WHERE ID =  " + postID)) {
+                try ( PreparedStatement stmt = con.prepareStatement("SELECT * FROM posts WHERE ID = ? ")) {
+                	stmt.setInt(1, postID);
                     ResultSet resultSet = stmt.executeQuery();
                     while (resultSet.next()) {
                         writer.write(resultSet.getInt("ID") + ",");
@@ -237,7 +235,7 @@ public class Post {
                 // Flush and close the writer
                 writer.flush();
                 writer.close();
-                result = "Post exported successfully";
+                result = true;
             } 
 
         } catch (IOException e) {
@@ -253,9 +251,11 @@ public class Post {
         }
 		return result;
 	}
+
+
+
 	
-	
-	public boolean SocialMediaPostImporter() throws IOException, PostIDInvalid {
+	public boolean SocialMediaPostImporter() throws IOException, PostIDInvalid, PostIDExists {
 		String csvFile = "posts.csv"; // Specify your CSV file path
 	    try (BufferedReader br = new BufferedReader(new FileReader(csvFile))) { // try catch to get file data and shows message on error
             String line; // define line as string

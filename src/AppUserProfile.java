@@ -1,3 +1,4 @@
+import javafx.beans.property.SimpleStringProperty;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.event.ActionEvent;
@@ -7,22 +8,24 @@ import javafx.scene.Scene;
 import javafx.scene.chart.PieChart;
 import javafx.scene.control.*;
 import javafx.scene.control.Alert.AlertType;
+import javafx.scene.control.cell.PropertyValueFactory;
 import javafx.scene.layout.GridPane;
 import javafx.scene.layout.VBox;
 import javafx.scene.text.Text;
 import javafx.stage.Stage;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
+import java.time.format.DateTimeParseException;
 import java.io.IOException;
 import java.sql.SQLException;
-import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 //import appException.Exceptions.FaildUpdateException;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
-import appException.Exceptions;
-import appException.Exceptions.EmailExistsException;
 import appException.Exceptions.FailedUpdateException;
+import appException.Exceptions.PostIDExists;
 import appException.Exceptions.PostIDInvalid;
 
 public class AppUserProfile {
@@ -48,6 +51,17 @@ public class AppUserProfile {
 		}
 
 		post = new Post();
+	}
+
+	// Helper method to display an error alert
+	private void showAlert(Alert alert, String Title, String headerText, String contentText) {
+		alert.setAlertType(AlertType.INFORMATION);
+		if (Title == "Error") {
+			alert.setAlertType(AlertType.ERROR);
+		}
+		alert.setTitle(Title);
+		alert.setHeaderText(headerText);
+		alert.setContentText(contentText);
 	}
 
 	private void initializeLabels() {
@@ -85,7 +99,7 @@ public class AppUserProfile {
 	private Tab createEditProfileTab() {
 		Tab tab = new Tab("Edit Profile");
 
-		Label emailLabel = new Label("Email:");
+		Label emailLabel = new Label("Email Address:");
 		Label firstNameLabel = new Label("First Name:");
 		Label lastNameLabel = new Label("Last Name:");
 
@@ -94,12 +108,12 @@ public class AppUserProfile {
 		TextField lastName = new TextField(userInfo.get("LastName"));
 		TextField emailTextField = new TextField(userInfo.get("EmailAddress"));
 		Button UpdateProfileButton = new Button("Update Profile");
-		Text Result = new Text();
-
+		Button logOut = new Button("Logout");
 		GridPane editProfileContent = createForm("User Profile");
 
 		// Add the labels and text fields to the form
 		editProfileContent.add(fullNameLabel, 0, 1);
+		editProfileContent.add(logOut, 1, 1);
 		editProfileContent.add(accountTypeLabel, 0, 2);
 
 		editProfileContent.add(firstNameLabel, 0, 3);
@@ -110,8 +124,7 @@ public class AppUserProfile {
 
 		editProfileContent.add(emailLabel, 0, 5);
 		editProfileContent.add(emailTextField, 1, 5);
-
-		editProfileContent.add(Result, 0, 6);
+ 
 		editProfileContent.add(UpdateProfileButton, 0, 7);
 		UserVIPStatus = user.UserVIPStatus(userID);
 		if (UserVIPStatus.equals("Basic")) {
@@ -131,13 +144,12 @@ public class AppUserProfile {
 							boolean VIPUpdate = user.SetUserVIP(UserID);
 
 							if (VIPUpdate) {
-								alert.setTitle("Update Successfull");
-								alert.setHeaderText("Your account successfully updated to VIP");
-								alert.setContentText("Please log out and log in again to access VIP functionalities.");
+								showAlert(alert, "Success", "Your account successfully updated to VIP",
+										"Please log out and log in again to access VIP functionalities.");
+
 							} else {
-								alert.setTitle("Update Failed");
-								alert.setHeaderText("Failed to update to VIP");
-								alert.setContentText("Something went wrong, please try again");
+								showAlert(alert, "Error", "Failed to update to VIP",
+										"Something went wrong, please try again");
 							}
 							alert.showAndWait();
 						} catch (FailedUpdateException e) {
@@ -145,43 +157,26 @@ public class AppUserProfile {
 							e.printStackTrace();
 						}
 					}
-//    				    String FirstName = firstName.getText();
-//    				    String LastName = lastName.getText();
-//    				    String EmailAddress = emailTextField.getText();
-//    				    String Password = userInfo.get("Password");
-//    				    String AccountType = userInfo.get("AccountType");
-//
-//    				    User newUser = null;
-//    				    try {
-//    				        newUser = new User(UserID, FirstName, LastName, EmailAddress, Password, AccountType);
-//    				    } catch (SQLException e) {
-//    				        e.printStackTrace();
-//    				    }
-//
-//    				    boolean updateUser = false;
-//    				    try {
-//    						updateUser = newUser.UpdateUser(newUser);
-//    					} catch (FailedUpdateException e) {
-//    						// TODO Auto-generated catch block
-//    						e.printStackTrace();
-//    					}
-//    				    if (updateUser) {
-//    				    	alert.setTitle("Update Successfull");
-//							alert.setHeaderText("Your account details successfully");
-//							alert.setContentText("Please log out and log in again to see your updated details");
-//    				    } 
-//    				} else {
-//    					alert.setTitle("Update Failed");
-//						alert.setHeaderText("Failed to Your account details");
-//						alert.setContentText("Something went wrong, please try again");
-//    				}
-//    				alert.showAndWait();
 				}
 			});
 		}
 
 		tab.setContent(editProfileContent);
 
+		logOut.setOnAction(new EventHandler<ActionEvent>() {
+
+			@Override
+			public void handle(ActionEvent event) {
+				AppFirstPage FirstPage = new AppFirstPage(primaryStage);
+				primaryStage.setTitle(FirstPage.getTitle()); // Set the stage title
+				primaryStage.setScene(FirstPage.getScene()); // Place the scene in the stage
+				primaryStage.setHeight(600);
+				primaryStage.setWidth(800);
+				primaryStage.show(); // Display the stage
+			}
+			
+			});
+		
 		/// button click handler
 		UpdateProfileButton.setOnAction(new EventHandler<ActionEvent>() {
 
@@ -195,6 +190,19 @@ public class AppUserProfile {
 					String EmailAddress = emailTextField.getText();
 					String Password = userInfo.get("Password");
 					String AccountType = userInfo.get("AccountType");
+					// Regular expression for a simple email format validation
+					String emailRegex = "^[A-Za-z0-9+_.-]+@(.+)$";
+					Pattern pattern = Pattern.compile(emailRegex);
+					Matcher matcher = pattern.matcher(EmailAddress);
+
+					if (!matcher.matches()) {
+						alert.setTitle("Login Failed");
+						alert.setHeaderText("Invalid Email Format");
+						alert.setContentText("Please enter a valid email address.");
+						showAlert(alert, "Error", "Invalid Email Format", "Please enter a valid email address.");
+						alert.showAndWait();
+						return; // Exit the method if the email format is invalid
+					}
 
 					User newUser = null;
 					try {
@@ -211,14 +219,13 @@ public class AppUserProfile {
 						e.printStackTrace();
 					}
 					if (updateUser) {
-						alert.setTitle("Update Successfull");
-						alert.setHeaderText("Your account details successfully");
-						alert.setContentText("Please log out and log in again to see your updated details");
+						showAlert(alert, "Success", "Your account details successfully",
+								"Please log out and log in again to see your updated details");
 					}
 				} else {
-					alert.setTitle("Update Failed");
-					alert.setHeaderText("Failed to Your account details");
-					alert.setContentText("Something went wrong, please try again");
+					showAlert(alert, "Error", "Failed to Your account details",
+							"Something went wrong, please try again");
+
 				}
 				alert.showAndWait();
 			}
@@ -238,18 +245,18 @@ public class AppUserProfile {
 		Label AuthorLabel = new Label("Author:");
 		Label LikesLabel = new Label("Likes:");
 		Label SharesLabel = new Label("Shares:");
-		Label DateTimeLabel = new Label("Date&Time(Format: dd/MM/yyyy HH:mm)");
+		Label DateTimeLabel = new Label("Date & Time (Format: dd/MM/yyyy HH:mm)");
 
 		TextField PostIDField = new TextField();
 		TextField PostContentField = new TextField();
 		TextField AuthorField = new TextField();
-		TextField LikesField = new TextField();
-		TextField SharesField = new TextField();
+		TextField LikesField = new TextField("0");
+		TextField SharesField = new TextField("0");
 		TextField DateField = new TextField();
 		Button AddPostButton = new Button("Add Post");
 		Text Result = new Text();
 
-		GridPane AddPostContent = createForm("User Profile");
+		GridPane AddPostContent = createForm("Add Post");
 
 		AddPostContent.add(PostIDLabel, 0, 1);
 		AddPostContent.add(PostIDField, 1, 1);
@@ -278,53 +285,72 @@ public class AppUserProfile {
 		AddPostButton.setOnAction(new EventHandler<ActionEvent>() {
 			@Override
 			public void handle(ActionEvent event) {
+				Alert alert = new Alert(AlertType.INFORMATION);
+
+				String postContent = PostContentField.getText();
+				String author = AuthorField.getText();
+				int likes;
+				int shares;
+				String dateTime = DateField.getText();
+				int postID = 0;
+
 				try {
-					int postID = Integer.parseInt(PostIDField.getText());
-
-					if (postID == 0) {
-						Result.setText("Post ID cannot be zero.");
-						return;
-					}
-
-					postInfo = post.GetPostDetails(postID);
-					if (post.postIDExists(postID)) {
-						Result.setText("Post with ID " + postID + " already exists.");
-						return;
-					}
-
-					String postContent = PostContentField.getText();
-					String author = AuthorField.getText();
-
-					int likes = 0;
-					int shares = 0;
-
-					try {
-						likes = Integer.parseInt(LikesField.getText());
-						shares = Integer.parseInt(SharesField.getText());
-					} catch (NumberFormatException e) {
-						Result.setText("Likes and Shares must be non-negative integers.");
-						return;
-					}
-
-					if (likes < 0 || shares < 0) {
-						Result.setText("Likes and Shares must be non-negative integers.");
-						return;
-					}
-
-					String dateTime = DateField.getText();
-
-					Post newPost = new Post(postID, postContent, author, likes, shares, dateTime);
-					boolean result = post.CreateNewPost(newPost);
-
-					if (result) {
-						Result.setText("Post with ID " + postID + " successfully added.");
-					} else {
-						Result.setText("Failed to add post with ID " + postID);
-					}
-
-				} catch (PostIDInvalid e) {
-					Result.setText("Invalid input for Post ID, Likes, or Shares.");
+					postID = Integer.parseInt(PostIDField.getText());
+				} catch (NumberFormatException e) {
+					// Parsing as an integer failed
+					showAlert(alert, "Error", "Invalid Post ID", "Please enter a valid Post ID.");
+					alert.showAndWait();
+					return;
 				}
+
+				if (postID == 0) {
+					showAlert(alert, "Error", "Invalid Post ID", "Post ID cannot be zero.");
+					alert.showAndWait();
+					return;
+				}
+
+				try {
+					likes = Integer.parseInt(LikesField.getText());
+					shares = Integer.parseInt(SharesField.getText());
+				} catch (NumberFormatException e) {
+					showAlert(alert, "Error", "Invalid Data", "Likes and Shares must be non-negative integers.");
+					alert.showAndWait();
+					return;
+				}
+				if (postContent.isEmpty() || dateTime.isEmpty()) {
+					showAlert(alert, "Error", "Invalid Data", "Please fill all fields.");
+					alert.showAndWait();
+					return;
+
+				}
+
+				// Validate date and time format
+				DateTimeFormatter formatter = DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm");
+				try {
+					LocalDateTime parsedDateTime = LocalDateTime.parse(dateTime, formatter);
+				} catch (DateTimeParseException e) {
+					showAlert(alert, "Error", "Invalid Date & Time", "Date & Time format should be dd/MM/yyyy HH:mm.");
+					alert.showAndWait();
+					return;
+				}
+
+				Post newPost = new Post(postID, postContent, author, likes, shares, dateTime);
+				boolean result;
+				try {
+					result = post.CreateNewPost(newPost);
+					if (result) {
+						showAlert(alert, "Success", "Post successfully added",
+								"Post with ID " + postID + " successfully added.");
+					} else {
+						showAlert(alert, "Error", "Failed to add post", "Something went wrong, please try again.");
+					}
+				} catch (PostIDInvalid | PostIDExists e) {
+					showAlert(alert, "Error", "Invalid Post ID",
+							"Post ID is invalid or already exists. Please provide unique Post ID");
+					// TODO Auto-generated catch block
+					// e.printStackTrace();
+				}
+				alert.showAndWait();
 			}
 		});
 
@@ -340,8 +366,6 @@ public class AppUserProfile {
 
 		TextField PostIDField = new TextField();
 
-		Text Result = new Text();
-
 		Button DeletePostButton = new Button("Delete Post");
 
 		GridPane DeletePostContent = createForm("Delete Post by ID");
@@ -349,11 +373,12 @@ public class AppUserProfile {
 		DeletePostContent.add(PostIDLabel, 0, 1);
 		DeletePostContent.add(PostIDField, 1, 1);
 		DeletePostContent.add(DeletePostButton, 0, 2);
-		DeletePostContent.add(Result, 0, 3);
 
 		tab.setContent(DeletePostContent);
 
 		DeletePostButton.setOnAction(new EventHandler<ActionEvent>() {
+			Alert alert = new Alert(AlertType.INFORMATION);
+
 			@Override
 			public void handle(ActionEvent event) {
 				try {
@@ -361,18 +386,20 @@ public class AppUserProfile {
 					Post post = new Post();
 
 					if (!post.postIDExists(postID)) {
-						Result.setText("Post ID is not valid or not exists.");
-						return;
+						showAlert(alert, "Error", "Invalid Post ID", "Post ID is not valid or not exists.");
+						PostIDField.setText("");
+						// return;
 					}
 
 					boolean QueryResult = post.DeletePost(postID);
 					if (QueryResult) {
-						Result.setText("Post deleted successfully");
+						showAlert(alert, "Success", "Post Deleted", "Post with ID " + postID + " Deleted Successfully");
 					}
 
 				} catch (NumberFormatException e) {
-					Result.setText("Invalid input for Post ID.");
+					showAlert(alert, "Error", "Invalid Post ID", "Invalid input for Post ID.");
 				}
+				alert.showAndWait();
 			}
 		});
 
@@ -383,12 +410,9 @@ public class AppUserProfile {
 		Tab tab = new Tab("Show Post Details");
 
 		Label PostIDLabel = new Label("Post ID:");
-
 		TextField PostIDField = new TextField();
-
-		Text Result = new Text();
-
 		Button GetPostButton = new Button("Get Post details");
+		Text Result = new Text();
 
 		GridPane PostDetailsTab = createForm("Show Post Details by ID");
 
@@ -397,34 +421,59 @@ public class AppUserProfile {
 		PostDetailsTab.add(GetPostButton, 0, 2);
 		PostDetailsTab.add(Result, 0, 3);
 
-		tab.setContent(PostDetailsTab);
+		// Create a TableView and define columns
+		TableView<Map.Entry<String, String>> tableView = new TableView<>();
+		TableColumn<Map.Entry<String, String>, String> column1 = new TableColumn<>("Field Name");
+		column1.setCellValueFactory(param -> new SimpleStringProperty(param.getValue().getKey()));
+		TableColumn<Map.Entry<String, String>, String> column2 = new TableColumn<>("Field Value");
+		column2.setCellValueFactory(param -> new SimpleStringProperty(param.getValue().getValue()));
+
+		tableView.getColumns().addAll(column1, column2);
+
+		tableView.setFixedCellSize(30); // Adjust the height as needed
+
+		// Set the maximum number of visible rows
+		tableView.setPrefHeight(7 * tableView.getFixedCellSize());
 
 		GetPostButton.setOnAction(new EventHandler<ActionEvent>() {
 			@Override
 			public void handle(ActionEvent event) {
+				tableView.getItems().clear(); // Clear previous data
 				String postIDText = PostIDField.getText();
 
-				if (!postIDText.equals("")) {
-					int postID = Integer.parseInt(postIDText);
-					postInfo = post.GetPostDetails(postID);
-					if (!postInfo.isEmpty()) {
-						String postContent = postInfo.get("Content");
-						String author = postInfo.get("Author");
-						int likes = Integer.parseInt(postInfo.get("Likes"));
-						int shares = Integer.parseInt(postInfo.get("Shares"));
-						String dateTimeString = postInfo.get("DateTime");
+				Alert alert = new Alert(AlertType.INFORMATION); // Create the alert here
 
-						Result.setText("ID: " + postID + "\n" + "Post Content: " + postContent + "\n" + "Author: "
-								+ author + "\n" + "Likes: " + likes + "\n" + "Shares: " + shares + "\n"
-								+ "Date & Time: " + dateTimeString);
-					} else {
-						Result.setText("Post with ID " + postID + " does not exist.");
+				if (!postIDText.isEmpty()) {
+					try {
+						int postID = Integer.parseInt(postIDText);
+						postInfo = post.GetPostDetails(postID);
+
+						if (!postInfo.isEmpty()) {
+							// Create an observable list to hold the data
+							ObservableList<Map.Entry<String, String>> data = FXCollections
+									.observableArrayList(postInfo.entrySet());
+
+							// Set the data in the TableView
+							tableView.setItems(data);
+						} else {
+							showAlert(alert, "Error", "Invalid Post ID", "Post with ID " + postID + " does not exist.");
+							alert.showAndWait();
+						}
+					} catch (NumberFormatException e) {
+						showAlert(alert, "Error", "Invalid Post ID", "Please enter a valid Post ID.");
+						alert.showAndWait();
 					}
 				} else {
-					Result.setText("Please enter a valid Post ID.");
+					showAlert(alert, "Error", "Invalid Post ID", "Please enter a valid Post ID");
+					alert.showAndWait();
 				}
 			}
 		});
+
+		// Place the TableView under the input fields
+		PostDetailsTab.add(tableView, 0, 4);
+
+		tab.setContent(PostDetailsTab);
 
 		return tab;
 	}
@@ -441,57 +490,77 @@ public class AppUserProfile {
 		ComboBox<String> comboBox = new ComboBox<>();
 		ObservableList<String> options = FXCollections.observableArrayList("Likes", "Shares");
 		comboBox.setItems(options);
+		comboBox.setValue("Likes");
 
 		Button GetTopPostsButton = new Button("Get Posts");
-
-		Text Result = new Text();
 
 		GridPane GetTopPosts = createForm("Get Top Posts by likes or shares");
 
 		GetTopPosts.add(GetTopPostByLabel, 0, 1);
 		GetTopPosts.add(comboBox, 1, 1);
 		GetTopPosts.add(NumberofPostsLabel, 0, 2);
-		GetTopPosts.add(NumberofPostsField, 0, 3);
-		GetTopPosts.add(GetTopPostsButton, 0, 4);
-		GetTopPosts.add(Result, 0, 5);
+		GetTopPosts.add(NumberofPostsField, 1, 2);
+		GetTopPosts.add(GetTopPostsButton, 0, 3);
 
 		tab.setContent(GetTopPosts);
+
+		// Create a TableView and define columns
+		TableView<PostData> tableView = new TableView<>();
+		TableColumn<PostData, String> column1 = new TableColumn<>("ID");
+		column1.setCellValueFactory(new PropertyValueFactory<>("id"));
+		TableColumn<PostData, String> column2 = new TableColumn<>("Post Content");
+		column2.setCellValueFactory(new PropertyValueFactory<>("postContent"));
+		TableColumn<PostData, String> column3 = new TableColumn<>("Author");
+		column3.setCellValueFactory(new PropertyValueFactory<>("author"));
+		TableColumn<PostData, String> column4 = new TableColumn<>("Likes");
+		column4.setCellValueFactory(new PropertyValueFactory<>("likes"));
+		TableColumn<PostData, String> column5 = new TableColumn<>("Shares");
+		column5.setCellValueFactory(new PropertyValueFactory<>("shares"));
+		TableColumn<PostData, String> column6 = new TableColumn<>("Date & Time");
+		column6.setCellValueFactory(new PropertyValueFactory<>("dateTime"));
+
+		tableView.getColumns().addAll(column1, column2, column3, column4, column5, column6);
+
+		tableView.setSortPolicy(param -> false);
 
 		GetTopPostsButton.setOnAction(new EventHandler<ActionEvent>() {
 			@Override
 			public void handle(ActionEvent event) {
+				tableView.getItems().clear(); // Clear previous data
 				String Type = comboBox.getValue();
 				String Count = "2";
+
 				if (NumberofPostsField != null && !NumberofPostsField.getText().isEmpty()) {
 					Count = NumberofPostsField.getText();
 				}
-				if (!Type.equals("")) {
-					List<Map<String, String>> postList = post.GetTopPosts(Type, Count);
 
-					if (postList != null && !postList.isEmpty()) {
-						for (Map<String, String> postInfo : postList) {
-							int postID = Integer.parseInt(postInfo.get("ID"));
-							String postContent = postInfo.get("Content");
-							String author = postInfo.get("Author");
-							int likes = Integer.parseInt(postInfo.get("Likes"));
-							int shares = Integer.parseInt(postInfo.get("Shares"));
-							String dateTimeString = postInfo.get("DateTime");
-							Result.setText(Result.getText() + "ID: " + postID + "\n" + "Post Content: " + postContent
-									+ "\n" + "Author: " + author + "\n" + "Likes: " + likes + "\n" + "Shares: " + shares
-									+ "\n" + "Date & Time: " + dateTimeString + "\n\n");
+				List<Map<String, String>> postList = post.GetTopPosts(Type, Count);
 
-						}
-					} else {
-						Result.setText("Nothing found!");
+				if (postList != null && !postList.isEmpty()) {
+					// Create an observable list to hold the data
+					ObservableList<PostData> data = FXCollections.observableArrayList();
+
+					for (Map<String, String> postInfo : postList) {
+						PostData postData = new PostData(postInfo.get("ID"), postInfo.get("Content"),
+								postInfo.get("Author"), postInfo.get("Likes"), postInfo.get("Shares"),
+								postInfo.get("DateTime"));
+
+						data.add(postData);
 					}
 
+					// Set the data in the TableView
+					tableView.setItems(data);
 				} else {
-					Result.setText("Please Select Type");
+					showAlert(new Alert(AlertType.ERROR), "Error", "Not found", "No post found");
 				}
+
 			}
 		});
-		return tab;
 
+		// Place the TableView under the input fields
+		GetTopPosts.add(tableView, 0, 4);
+
+		return tab;
 	}
 
 	private Tab createPostExporterTab() {
@@ -504,26 +573,50 @@ public class AppUserProfile {
 
 		Button GetTopPostsButton = new Button("Export into csv file");
 
-		Text Result = new Text();
-
 		GridPane GetTopPosts = createForm("Get Top Posts by likes or shares");
 
 		GetTopPosts.add(PostIDLabel, 0, 1);
 		GetTopPosts.add(PostIDField, 1, 1);
 		GetTopPosts.add(GetTopPostsButton, 0, 2);
-		GetTopPosts.add(Result, 0, 3);
 
 		tab.setContent(GetTopPosts);
 
 		GetTopPostsButton.setOnAction(new EventHandler<ActionEvent>() {
 			@Override
 			public void handle(ActionEvent event) {
-				int postID = Integer.parseInt(PostIDField.getText());
+				Alert alert = new Alert(AlertType.INFORMATION);
 
-				String ExportResult = post.exportToCSV(postID);
-				Result.setText(ExportResult);
+				try {
+					int postID = Integer.parseInt(PostIDField.getText());
+
+					// Check if the postID exists
+					if (!post.postIDExists(postID)) {
+						showAlert(alert, "Error", "Invalid Post ID not exists",
+								"Please enter a valid Post ID as a number."); // Throw PostIDInvalid exception if it
+																				// doesn't exist
+						alert.showAndWait();
+						return;
+					}
+
+					// The postID is valid, proceed to export
+					boolean exportResult = post.exportToCSV(postID);
+
+					if (exportResult) {
+						showAlert(alert, "Success", "Post ID " + postID + " exported.",
+								"Post data successfully exported into CSV file.");
+					} else {
+						showAlert(alert, "Error", "Failed to export Post ID " + postID,
+								"Failed to export post data, please try again.");
+					}
+
+				} catch (NumberFormatException e) {
+					showAlert(alert, "Error", "Invalid Post ID", "Please enter a valid Post ID as a number.");
+				}
+
+				alert.showAndWait();
 			}
 		});
+
 		return tab;
 
 	}
@@ -533,14 +626,12 @@ public class AppUserProfile {
 
 		Button ImportPosts = new Button("Click here to import posts");
 
-		Text Result = new Text("");
-
 		GridPane ImportPostContent = createForm("Import posts into database");
 
 		ImportPostContent.add(ImportPosts, 0, 1);
 
 		tab.setContent(ImportPostContent);
-
+		Alert alert = new Alert(AlertType.INFORMATION);
 		ImportPosts.setOnAction(new EventHandler<ActionEvent>() {
 			@Override
 			public void handle(ActionEvent event) {
@@ -549,16 +640,17 @@ public class AppUserProfile {
 				try {
 					ExportResult = post.SocialMediaPostImporter();
 					if (ExportResult) {
-						Result.setText("Posts successfully imported into databse");
+						showAlert(alert, "Success", "Successfull Import", "Posts successfully imported into databse");
 					}
 				} catch (IOException e) {
-					e.printStackTrace();
-					Result.setText("Failed to import posts. Please try again");
+					showAlert(alert, "Error", "Failed Import", "Something went wrong, please try again");
 				} catch (PostIDInvalid e) {
 					// TODO Auto-generated catch block
-					e.printStackTrace();
+				} catch (PostIDExists e) {
+					showAlert(alert, "Error", "Failed Import", "Post ID(s) not unique.");
+					// TODO Auto-generated catch block
 				}
-
+				alert.showAndWait();
 			}
 		});
 
