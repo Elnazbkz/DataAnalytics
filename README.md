@@ -1,5 +1,5 @@
 # DataAnalytics
-The Data Analytics App allows you to register and log in to the platform, manage and analyze social media posts, export and import posts into the database and see a report of top posts by shares in piechart format.
+The Data Analytics App allows you to register and login to the platform, manage and analyze social media posts, export and import posts into database and see a report of top posts by shares in piechart format.
 ## Installation
 
 1. Clone the Repository:
